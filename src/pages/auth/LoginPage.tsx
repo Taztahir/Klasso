@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2 } from 'lucide-react';
-import { motion, type Variants } from 'framer-motion';
+import { motion, useScroll, useTransform, MotionValue, useMotionTemplate, type Variants } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -13,6 +13,44 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+/* ── Three-layer floating shape component ── */
+const FloatingShape = ({
+    children,
+    className,
+    enterFrom,
+    exitDirection,
+    delay = 0,
+    containerProgress,
+    floatClass = 'animate-float',
+}: {
+    children: React.ReactNode;
+    className: string;
+    enterFrom: { x?: number; y?: number };
+    exitDirection: { x?: number; y?: number };
+    delay?: number;
+    containerProgress: MotionValue<number>;
+    floatClass?: string;
+}) => {
+    const exitX = useTransform(containerProgress, [0, 0.75], [0, exitDirection.x ?? 0]);
+    const exitY = useTransform(containerProgress, [0, 0.75], [0, exitDirection.y ?? 0]);
+    const exitOpacity = useTransform(containerProgress, [0, 0.45], [1, 0]);
+    const exitTransform = useMotionTemplate`translateX(${exitX}px) translateY(${exitY}px)`;
+
+    return (
+        <div className={`absolute pointer-events-none ${className} ${floatClass}`}>
+            <motion.div style={{ opacity: exitOpacity, transform: exitTransform }}>
+                <motion.div
+                    initial={{ opacity: 0, x: enterFrom.x ?? 0, y: enterFrom.y ?? 0 }}
+                    animate={{ opacity: 1, x: 0, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 70, damping: 16, delay }}
+                >
+                    {children}
+                </motion.div>
+            </motion.div>
+        </div>
+    );
+};
+
 const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -22,10 +60,11 @@ const containerVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 14 },
+    hidden: { opacity: 0, y: 14, filter: 'blur(4px)' },
     visible: {
         opacity: 1,
         y: 0,
+        filter: 'blur(0px)',
         transition: { type: 'spring', stiffness: 320, damping: 26 },
     },
 };
@@ -36,8 +75,15 @@ export const LoginPage = () => {
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const containerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const { signIn, signInWithGoogle } = useAuth();
+
+    const { scrollYProgress } = useScroll({
+        target: containerRef,
+        offset: ['start start', 'end start'],
+    });
 
     const handleGoogleLogin = async () => {
         setGoogleLoading(true);
@@ -66,158 +112,194 @@ export const LoginPage = () => {
 
     return (
         <div
-            className="flex min-h-screen w-full flex-col lg:flex-row font-sans"
+            ref={containerRef}
+            className="relative flex min-h-screen w-full items-center justify-center px-6 py-12 font-sans overflow-hidden"
             style={{ background: 'var(--cream)' }}
         >
-            {/* ── Left Image Panel ────────────────────────────── */}
-            <div className="relative hidden lg:flex lg:w-1/2 lg:min-h-screen flex-col justify-end p-5">
-                <div className="relative h-full w-full overflow-hidden rounded-[28px] border-4 border-brandBlack shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <img
-                        src="/auth-login-bg.png"
-                        alt="Modern school classroom with warm golden light"
-                        className="absolute inset-0 h-full w-full object-cover"
-                    />
-                    {/* gradient overlay */}
-                    <div
-                        className="absolute inset-0"
-                        style={{ background: 'linear-gradient(to top, rgba(30,58,95,0.88) 0%, rgba(30,58,95,0.3) 50%, transparent 100%)' }}
-                    />
-                    {/* panel copy */}
-                    <div className="absolute bottom-0 left-0 right-0 z-10 pb-12 px-10 text-center">
-                        <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/30 backdrop-blur-sm" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--brand-yellow)' }}></span>
-                            <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">Klasso School Platform</span>
-                        </div>
-                        <h2 className="mt-2 text-3xl font-black text-white leading-snug tracking-tight">
-                            A calmer way to run <br />
-                            <span className="italic font-light" style={{ color: 'var(--brand-yellow)' }}>your private school.</span>
-                        </h2>
-                        <div className="mt-7 flex items-center justify-center gap-2">
-                            <div className="h-1 w-6 rounded-full" style={{ background: 'var(--brand-yellow)' }}></div>
-                            <div className="h-1 w-1.5 rounded-full bg-white/30"></div>
-                            <div className="h-1 w-1.5 rounded-full bg-white/30"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* ── Top-left: Smiley Face ── */}
+            <FloatingShape
+                className="top-12 left-12 max-lg:top-6 max-lg:left-4"
+                floatClass="animate-float"
+                enterFrom={{ x: -100, y: -50 }}
+                exitDirection={{ x: -140, y: -90 }}
+                delay={0.15}
+                containerProgress={scrollYProgress}
+            >
+                <svg aria-hidden="true" width="100" height="100" viewBox="0 0 120 120" fill="none">
+                    <circle cx="60" cy="60" r="50" fill="#F472B6" fillOpacity="0.2" />
+                    <path d="M40 45C40 45 45 40 60 40C75 40 80 45 80 45V75C80 75 75 80 60 80C45 80 40 75 40 75V45Z" stroke="#18181B" strokeWidth="3" strokeLinecap="round" />
+                    <circle cx="50" cy="55" r="3" fill="#18181B" />
+                    <circle cx="70" cy="55" r="3" fill="#18181B" />
+                    <path d="M55 65C55 65 60 68 65 65" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M20 20L35 35" stroke="var(--brand-purple)" strokeWidth="3" strokeLinecap="round" />
+                    <circle cx="100" cy="30" r="5" fill="var(--brand-yellow)" />
+                </svg>
+            </FloatingShape>
 
-            {/* ── Right Form Panel ────────────────────────────── */}
-            <div className="flex w-full lg:w-1/2 flex-col items-center justify-center px-6 py-16 sm:px-12">
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="w-full max-w-[400px]"
-                >
-                    {/* Logo + Title */}
-                    <motion.div variants={itemVariants} className="mb-10 text-center">
-                        <Link to="/" className="inline-flex items-center gap-3 mb-7">
-                            <svg width="38" height="38" viewBox="0 0 100 100" fill="none" aria-label="Klasso logo">
-                                <rect x="8" y="8" width="84" height="84" rx="22" fill="var(--brand-purple)" />
-                                <rect x="28" y="26" width="10" height="48" rx="5" fill="var(--brand-yellow)" />
-                                <path d="M38 50 L66 26" stroke="#FFFFFF" strokeWidth="10" strokeLinecap="round" />
-                                <path d="M38 50 L66 74" stroke="var(--brand-green)" strokeWidth="10" strokeLinecap="round" />
-                            </svg>
-                            <span className="text-2xl font-black tracking-tight" style={{ color: 'var(--brand-purple)' }}>klasso</span>
-                        </Link>
-                        <h1 className="text-3xl font-black tracking-tight text-brandBlack">
-                            Welcome back<span className="italic font-light" style={{ color: 'var(--brand-purple)' }}>.</span>
-                        </h1>
-                        <p className="mt-2 text-sm font-medium text-brandBlack/50">Sign in to your school portal</p>
+            {/* ── Top-right: Triangle/Circle ── */}
+            <FloatingShape
+                className="top-12 right-12 max-lg:top-6 max-lg:right-4"
+                floatClass="animate-float-delayed"
+                enterFrom={{ x: 100, y: -50 }}
+                exitDirection={{ x: 140, y: -90 }}
+                delay={0.25}
+                containerProgress={scrollYProgress}
+            >
+                <svg aria-hidden="true" width="100" height="100" viewBox="0 0 120 120" fill="none">
+                    <path d="M60 10L110 96H10L60 10Z" fill="var(--brand-purple)" fillOpacity="0.1" stroke="var(--brand-purple)" strokeWidth="2" />
+                    <circle cx="60" cy="60" r="25" stroke="#18181B" strokeWidth="3" />
+                    <path d="M50 55C50 55 55 50 60 50C65 50 70 55 70 55" stroke="#18181B" strokeWidth="2" />
+                    <line x1="45" y1="70" x2="75" y2="70" stroke="#18181B" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+            </FloatingShape>
+
+            {/* ── Bottom-left: Green Badge ── */}
+            <FloatingShape
+                className="bottom-12 left-12 max-lg:bottom-6 max-lg:left-4"
+                floatClass="animate-float-reverse"
+                enterFrom={{ x: -80, y: 70 }}
+                exitDirection={{ x: -120, y: 70 }}
+                delay={0.35}
+                containerProgress={scrollYProgress}
+            >
+                <svg aria-hidden="true" width="90" height="90" viewBox="0 0 100 100" fill="none">
+                    <rect x="20" y="20" width="60" height="60" rx="30" fill="var(--brand-green)" fillOpacity="0.2" stroke="var(--brand-green)" strokeWidth="2" />
+                    <path d="M40 45L50 55L60 45" stroke="#18181B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </FloatingShape>
+
+            {/* ── Bottom-right: Yellow Square ── */}
+            <FloatingShape
+                className="bottom-12 right-12 max-lg:bottom-6 max-lg:right-4"
+                floatClass="animate-float-delayed-reverse"
+                enterFrom={{ x: 80, y: 70 }}
+                exitDirection={{ x: 120, y: 70 }}
+                delay={0.3}
+                containerProgress={scrollYProgress}
+            >
+                <svg aria-hidden="true" width="90" height="90" viewBox="0 0 100 100" fill="none">
+                    <rect x="20" y="20" width="60" height="60" rx="10" fill="var(--brand-yellow)" fillOpacity="0.2" stroke="var(--brand-yellow)" strokeWidth="2" transform="rotate(15 50 50)" />
+                    <circle cx="45" cy="45" r="4" fill="#18181B" />
+                    <circle cx="65" cy="45" r="4" fill="#18181B" />
+                    <path d="M45 60C45 60 55 65 65 60" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+            </FloatingShape>
+
+            {/* Main Form Container */}
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="relative z-10 w-full max-w-[400px]"
+            >
+                {/* Logo + Title */}
+                <motion.div variants={itemVariants} className="mb-10 text-center">
+                    <Link to="/" className="inline-flex items-center gap-3 mb-7">
+                        <svg width="38" height="38" viewBox="0 0 100 100" fill="none" aria-label="Klasso logo">
+                            <rect x="8" y="8" width="84" height="84" rx="22" fill="var(--brand-purple)" />
+                            <rect x="28" y="26" width="10" height="48" rx="5" fill="var(--brand-yellow)" />
+                            <path d="M38 50 L66 26" stroke="#FFFFFF" strokeWidth="10" strokeLinecap="round" />
+                            <path d="M38 50 L66 74" stroke="var(--brand-green)" strokeWidth="10" strokeLinecap="round" />
+                        </svg>
+                        <span className="text-2xl font-black tracking-tight" style={{ color: 'var(--brand-purple)' }}>klasso</span>
+                    </Link>
+                    <h1 className="text-3xl font-black tracking-tight text-brandBlack">
+                        Welcome back<span className="italic font-light" style={{ color: 'var(--brand-purple)' }}>.</span>
+                    </h1>
+                    <p className="mt-2 text-sm font-medium text-brandBlack/50">Sign in to your school portal</p>
+                </motion.div>
+
+                {/* Error */}
+                {error && (
+                    <motion.div
+                        variants={itemVariants}
+                        className="mb-6 p-4 rounded-2xl border-2 border-red-400 text-red-600 text-sm font-bold"
+                        style={{ background: '#fff0f0' }}
+                    >
+                        {error}
+                    </motion.div>
+                )}
+
+                {/* Google Button */}
+                <motion.div variants={itemVariants} className="mb-6">
+                    <button
+                        type="button"
+                        id="login-google-btn"
+                        onClick={handleGoogleLogin}
+                        disabled={googleLoading || loading}
+                        className="w-full flex items-center justify-center gap-2.5 rounded-2xl border-2 border-brandBlack bg-white py-3.5 text-sm font-bold text-brandBlack shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none active:scale-[0.97] disabled:opacity-50"
+                    >
+                        {googleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GoogleIcon className="text-[18px]" />}
+                        Continue with Google
+                    </button>
+                </motion.div>
+
+                {/* Divider */}
+                <motion.div variants={itemVariants} className="relative mb-6 flex items-center gap-4">
+                    <div className="grow border-t-2 border-brandBlack/10"></div>
+                    <span className="text-[11px] font-black uppercase tracking-widest text-brandBlack/30">Or</span>
+                    <div className="grow border-t-2 border-brandBlack/10"></div>
+                </motion.div>
+
+                {/* Form */}
+                <form onSubmit={handleLogin} className="flex flex-col gap-5">
+                    <motion.div variants={itemVariants} className="flex flex-col gap-1.5">
+                        <label htmlFor="login-email" className="text-sm font-bold text-brandBlack ml-1">Email</label>
+                        <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brandBlack/30" />
+                            <input
+                                id="login-email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="principal@school.com"
+                                required
+                                autoComplete="email"
+                                className="w-full rounded-xl border-2 border-brandBlack pl-10 pr-4 py-3.5 text-sm font-medium text-brandBlack placeholder:text-brandBlack/30 focus:outline-none focus:ring-2 transition-all"
+                                style={{ background: 'var(--cream)', '--tw-ring-color': 'var(--brand-purple)' } as React.CSSProperties}
+                            />
+                        </div>
                     </motion.div>
 
-                    {/* Error */}
-                    {error && (
-                        <motion.div
-                            variants={itemVariants}
-                            className="mb-6 p-4 rounded-2xl border-2 border-red-400 text-red-600 text-sm font-bold"
-                            style={{ background: '#fff0f0' }}
-                        >
-                            {error}
-                        </motion.div>
-                    )}
+                    <motion.div variants={itemVariants} className="flex flex-col gap-1.5">
+                        <label htmlFor="login-password" className="text-sm font-bold text-brandBlack ml-1">Password</label>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brandBlack/30" />
+                            <input
+                                id="login-password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                                autoComplete="current-password"
+                                className="w-full rounded-xl border-2 border-brandBlack pl-10 pr-4 py-3.5 text-sm font-medium text-brandBlack placeholder:text-brandBlack/30 focus:outline-none focus:ring-2 transition-all"
+                                style={{ background: 'var(--cream)', '--tw-ring-color': 'var(--brand-purple)' } as React.CSSProperties}
+                            />
+                        </div>
+                    </motion.div>
 
-                    {/* Google */}
-                    <motion.div variants={itemVariants} className="mb-6">
+                    <motion.div variants={itemVariants} className="mt-1">
                         <button
-                            type="button"
-                            id="login-google-btn"
-                            onClick={handleGoogleLogin}
-                            disabled={googleLoading || loading}
-                            className="w-full flex items-center justify-center gap-2.5 rounded-2xl border-2 border-brandBlack bg-white py-3.5 text-sm font-bold text-brandBlack shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none active:scale-[0.97] disabled:opacity-50"
+                            id="login-submit-btn"
+                            type="submit"
+                            disabled={loading}
+                            className="w-full rounded-2xl border-2 border-brandBlack py-4 text-sm font-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none active:scale-[0.97] disabled:opacity-60"
+                            style={{ background: 'var(--brand-purple)' }}
                         >
-                            {googleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GoogleIcon className="text-[18px]" />}
-                            Continue with Google
+                            {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Sign in to Portal'}
                         </button>
                     </motion.div>
+                </form>
 
-                    {/* Divider */}
-                    <motion.div variants={itemVariants} className="relative mb-6 flex items-center gap-4">
-                        <div className="grow border-t-2 border-brandBlack/10"></div>
-                        <span className="text-[11px] font-black uppercase tracking-widest text-brandBlack/30">Or</span>
-                        <div className="grow border-t-2 border-brandBlack/10"></div>
-                    </motion.div>
-
-                    {/* Form */}
-                    <form onSubmit={handleLogin} className="flex flex-col gap-5">
-                        <motion.div variants={itemVariants} className="flex flex-col gap-1.5">
-                            <label htmlFor="login-email" className="text-sm font-bold text-brandBlack ml-1">Email</label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brandBlack/30" />
-                                <input
-                                    id="login-email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="principal@school.com"
-                                    required
-                                    autoComplete="email"
-                                    className="w-full rounded-xl border-2 border-brandBlack pl-10 pr-4 py-3.5 text-sm font-medium text-brandBlack placeholder:text-brandBlack/30 focus:outline-none focus:ring-2 transition-all"
-                                    style={{ background: 'var(--cream)', '--tw-ring-color': 'var(--brand-purple)' } as React.CSSProperties}
-                                />
-                            </div>
-                        </motion.div>
-
-                        <motion.div variants={itemVariants} className="flex flex-col gap-1.5">
-                            <label htmlFor="login-password" className="text-sm font-bold text-brandBlack ml-1">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brandBlack/30" />
-                                <input
-                                    id="login-password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    required
-                                    autoComplete="current-password"
-                                    className="w-full rounded-xl border-2 border-brandBlack pl-10 pr-4 py-3.5 text-sm font-medium text-brandBlack placeholder:text-brandBlack/30 focus:outline-none focus:ring-2 transition-all"
-                                    style={{ background: 'var(--cream)', '--tw-ring-color': 'var(--brand-purple)' } as React.CSSProperties}
-                                />
-                            </div>
-                        </motion.div>
-
-                        <motion.div variants={itemVariants} className="mt-1">
-                            <button
-                                id="login-submit-btn"
-                                type="submit"
-                                disabled={loading}
-                                className="w-full rounded-2xl border-2 border-brandBlack py-4 text-sm font-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none active:scale-[0.97] disabled:opacity-60"
-                                style={{ background: 'var(--brand-purple)' }}
-                            >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Sign in to Portal'}
-                            </button>
-                        </motion.div>
-                    </form>
-
-                    {/* Footer link */}
-                    <motion.p variants={itemVariants} className="mt-8 text-center text-sm font-bold text-brandBlack/50">
-                        Don't have an account?{' '}
-                        <Link to="/signup" className="font-black transition-colors hover:underline" style={{ color: 'var(--brand-purple)' }}>
-                            Register your school
-                        </Link>
-                    </motion.p>
-                </motion.div>
-            </div>
+                {/* Footer link */}
+                <motion.p variants={itemVariants} className="mt-8 text-center text-sm font-bold text-brandBlack/50">
+                    Don't have an account?{' '}
+                    <Link to="/signup" className="font-black transition-colors hover:underline" style={{ color: 'var(--brand-purple)' }}>
+                        Register your school
+                    </Link>
+                </motion.p>
+            </motion.div>
         </div>
     );
 };

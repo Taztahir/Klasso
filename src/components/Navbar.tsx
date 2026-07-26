@@ -92,7 +92,7 @@ export const Navbar = () => {
             >
                 <div className="px-6 py-10 flex flex-col gap-8 max-h-[calc(100vh-80px)] overflow-y-auto">
                     <div className="flex flex-col gap-5">
-                        <a href="#features" onClick={toggleMenu} className="text-xl font-bold text-brandPurple hover:text-brandGreen transition-colors">Features</a>
+                        <a href="#about" onClick={toggleMenu} className="text-xl font-bold text-brandPurple hover:text-brandGreen transition-colors">About</a>
                         <a href="#pricing" onClick={toggleMenu} className="text-xl font-bold text-brandPurple hover:text-brandGreen transition-colors">Pricing</a>
                         <a href="#how-it-works" onClick={toggleMenu} className="text-xl font-bold text-brandPurple hover:text-brandGreen transition-colors">How It Works</a>
                         <a href="#testimonials" onClick={toggleMenu} className="text-xl font-bold text-brandPurple hover:text-brandGreen transition-colors">Reviews</a>

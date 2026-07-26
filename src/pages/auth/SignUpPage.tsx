@@ -116,40 +116,10 @@ export const SignUpPage = () => {
 
     return (
         <div
-            className="flex min-h-screen w-full flex-col lg:flex-row-reverse font-sans"
+            className="flex items-center justify-center min-h-screen w-full font-sans"
             style={{ background: 'var(--cream)' }}
         >
-            {/* ── Right Image Panel (flipped from login) ─────── */}
-            <div className="relative hidden lg:flex lg:w-1/2 lg:min-h-screen flex-col justify-end p-5">
-                <div className="relative h-full w-full overflow-hidden rounded-[28px] border-4 border-brandBlack shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <img
-                        src="/auth-signup-bg.png"
-                        alt="Modern school campus at dusk"
-                        className="absolute inset-0 h-full w-full object-cover"
-                    />
-                    {/* gradient overlay */}
-                    <div
-                        className="absolute inset-0"
-                        style={{ background: 'linear-gradient(to top, rgba(30,58,95,0.9) 0%, rgba(42,140,140,0.2) 55%, transparent 100%)' }}
-                    />
-                    {/* panel copy */}
-                    <div className="absolute bottom-0 left-0 right-0 z-10 pb-12 px-10 text-center">
-                        <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/30 backdrop-blur-sm" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--brand-green)' }}></span>
-                            <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">Join 500+ Schools</span>
-                        </div>
-                        <h2 className="mt-2 text-3xl font-black text-white leading-snug tracking-tight">
-                            Your school, <br />
-                            <span className="italic font-light" style={{ color: 'var(--brand-green)' }}>finally under control.</span>
-                        </h2>
-                        <div className="mt-7 flex items-center justify-center gap-2">
-                            <div className="h-1 w-1.5 rounded-full bg-white/30"></div>
-                            <div className="h-1 w-6 rounded-full" style={{ background: 'var(--brand-green)' }}></div>
-                            <div className="h-1 w-1.5 rounded-full bg-white/30"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             {/* ── Left Form Panel ────────────────────────────── */}
             <div className="flex w-full lg:w-1/2 flex-col items-center justify-center px-6 py-16 sm:px-12">

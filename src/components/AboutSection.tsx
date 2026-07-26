@@ -1,23 +1,15 @@
 import { Section } from './Section';
-import { motion, useReducedMotion } from 'framer-motion';
 
 export const AboutSection = () => {
-    const shouldReduce = useReducedMotion();
-
     return (
         <Section id="about" className="bg-cream py-32 border-t-2 border-brandBlack/5">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
                     {/* Left: Narrative Content */}
                     <div className="lg:col-span-7">
-                        <motion.div
-                            initial={{ opacity: 0, x: shouldReduce ? 0 : -35 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: false, amount: 0.15 }}
-                            transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-                        >
+                        <div>
                             <span className="text-brandPurple font-bold uppercase tracking-widest text-xs">Our Mission</span>
-                            <h2 className="text-4xl md:text-6xl font-black mt-6 mb-10 italic leading-tight">
+                            <h2 className="text-4xl md:text-5xl font-black mt-6 mb-10 leading-tight">
                                 Making premium school management <span className="text-brandPurple">accessible</span> to every school.
                             </h2>
                             <div className="space-y-6 text-lg md:text-xl font-medium leading-relaxed text-brandBlack/70 mb-12">
@@ -27,17 +19,13 @@ export const AboutSection = () => {
                                 <p>
                                     We are building a secure, multi-tenant portal that isolates and streamlines operations for each school — enabling proprietors, staff, and parents to collaborate with ease.
                                 </p>
-                             </div>
-                        </motion.div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Right: Trust Visual Card */}
                     <div className="lg:col-span-5 relative">
-                        <motion.div
-                            initial={{ opacity: 0, scale: shouldReduce ? 1 : 0.9, rotate: shouldReduce ? 0 : 2 }}
-                            whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-                            viewport={{ once: false, amount: 0.15 }}
-                            transition={{ type: 'spring', stiffness: 70, damping: 15 }}
+                        <div
                             className="bg-white border-4 border-brandBlack p-10 rounded-[48px] shadow-[24px_24px_0px_0px_rgba(168,85,247,0.1)] relative z-10"
                         >
                             <div className="mb-8 p-4 bg-brandPurple/5 rounded-3xl border-2 border-brandBlack/5 w-fit">
@@ -46,7 +34,7 @@ export const AboutSection = () => {
                                     <circle cx="50" cy="50" r="10" fill="#E8A838" />
                                 </svg>
                             </div>
-                            <blockquote className="text-2xl font-bold italic leading-relaxed mb-8">
+                            <blockquote className="md:text-2xl text-md font-bold italic mb-8">
                                 "We wanted to build something that feels like a calm harbor for school management, serving proprietors first."
                             </blockquote>
                             <div className="flex items-center gap-4">
@@ -56,7 +44,7 @@ export const AboutSection = () => {
                                     <p className="text-xs font-bold text-brandPurple">Klasso.app Team</p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Interactive blobs */}
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-brandYellow/20 rounded-full blur-3xl -z-0"></div>

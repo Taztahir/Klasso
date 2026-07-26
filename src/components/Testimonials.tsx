@@ -77,26 +77,15 @@ export const Testimonials = () => {
     return (
         <Section id="testimonials" className="py-32 bg-white overflow-hidden">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="flex flex-col md:flex-row justify-between items-end gap-12 mb-20">
+                <div className="flex flex-col md:flex-row justify-between items-start gap-10 mb-16">
                     <div className="max-w-2xl">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="flex items-center gap-2 text-brandPurple font-bold uppercase tracking-wider text-sm mb-4"
-                        >
+                        <div className="flex items-center gap-2 text-brandPurple font-bold uppercase tracking-wider text-sm mb-4">
                             <MessageSquare size={18} />
                             Success Stories
-                        </motion.div>
-                        <motion.h2
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.1 }}
-                            className="text-4xl md:text-5xl font-bold italic"
-                        >
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-extrabold italic text-brandBlack">
                             Loved by Proprietors, Teachers, & Parents.
-                        </motion.h2>
+                        </h2>
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -128,10 +117,11 @@ export const Testimonials = () => {
                 </div>
 
                 <div className="relative">
-                    <div className="overflow-visible">
+                    <div className="overflow-hidden">
                         <motion.div
                             className="flex"
                             animate={{ x: `-${activeIndex * (100 / visibleCount)}%` }}
+                            style={{ willChange: 'transform' }}
                             transition={{ type: "spring", damping: 25, stiffness: 120 }}
                         >
                             {reviews.map((review, i) => (

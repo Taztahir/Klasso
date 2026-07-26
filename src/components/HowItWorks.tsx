@@ -27,7 +27,7 @@ export const HowItWorks = () => {
         <Section id="how-it-works" className="py-32 bg-brandBlack text-white">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-20">
-                    <h2 className="text-4xl md:text-5xl font-bold mb-6 italic">How It Works</h2>
+                    <h2 className="text-4xl md:text-5xl font-bold mb-6">How It Works</h2>
                     <p className="text-white/60 max-w-2xl mx-auto text-lg">
                         Go from scattered paper records and WhatsApp messages to a unified school portal in three simple steps.
                     </p>
@@ -43,8 +43,8 @@ export const HowItWorks = () => {
                                 {i + 1}
                             </div>
                             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 border-2 border-white ${step.color === 'brandYellow' ? 'bg-brandYellow' :
-                                    step.color === 'brandPurple' ? 'bg-brandPurple' :
-                                        'bg-brandGreen'
+                                step.color === 'brandPurple' ? 'bg-brandPurple' :
+                                    'bg-brandGreen'
                                 }`}>
                                 <step.icon className="w-8 h-8 text-brandBlack" />
                             </div>

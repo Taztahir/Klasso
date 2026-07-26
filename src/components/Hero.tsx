@@ -95,7 +95,6 @@ export const Hero = () => {
 
     // Scroll-out for the main content block
     const contentY = useTransform(scrollYProgress, [0, 1], [0, -50]);
-    const contentOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
     return (
         <section ref={sectionRef} className="relative pt-28 pb-36 bg-cream overflow-hidden">
@@ -169,22 +168,21 @@ export const Hero = () => {
                 </svg>
             </FloatingShape>
 
-            {/* ── Main content — staggered entry + scroll-out ── */}
             <motion.div
                 className="max-w-4xl mx-auto px-6 font-sans text-center relative z-10"
-                style={{ y: contentY, opacity: contentOpacity }}
+                style={{ y: contentY }}
                 variants={contentVariants}
                 initial="hidden"
                 animate="visible"
             >
                 <motion.h1
                     variants={itemVariants}
-                    className="text-4xl sm:text-[54px] font-semibold leading-[1.1] mb-8 tracking-tight"
+                    className="text-4xl font-sans sm:text-[54px] font-semibold leading-[1.1] mb-8 tracking-tight"
                 >
                     Run Your Private School <br className="hidden sm:block" />
                     From One{' '}
                     <span className="relative inline-block mt-2 sm:mt-0">
-                        <span className="relative z-10 px-4 py-1 text-brandBlack italic">#Dashboard</span>
+                        <span className="relative z-10 px-4 py-1 text-brandBlack">#Dashboard</span>
                         <span className="absolute inset-0 bg-brandYellow rounded-lg -rotate-1 -z-0 animate-wiggle border-2 border-brandBlack"></span>
                     </span>
                 </motion.h1>
@@ -216,3 +214,4 @@ export const Hero = () => {
         </section>
     );
 };
+

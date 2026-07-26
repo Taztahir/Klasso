@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Send, Mail, User, MessageSquare, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const ContactSection = () => {
@@ -45,12 +44,7 @@ export const ContactSection = () => {
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                     {/* Content Column */}
                     <div className="space-y-8">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                        >
+                        <div>
                             <span className="inline-block px-4 py-1.5 rounded-full bg-brandPurple/10 text-brandPurple text-sm font-bold uppercase tracking-wider mb-6">
                                 Contact Us
                             </span>
@@ -61,15 +55,9 @@ export const ContactSection = () => {
                             <p className="text-lg md:text-xl text-brandBlack/60 font-medium leading-relaxed max-w-md">
                                 Have questions about setting up Klasso for your school? Our team is ready to assist you with onboarding, data migration, and training.
                             </p>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                            className="space-y-6"
-                        >
+                        <div className="space-y-6">
                             <div className="flex items-center gap-6 p-6 bg-white rounded-3xl border border-brandBlack/5 shadow-sm hover:shadow-md transition-all group">
                                 <div className="w-14 h-14 bg-brandBlack text-white rounded-2xl flex items-center justify-center group-hover:bg-brandPurple transition-colors">
                                     <Mail size={24} />
@@ -89,17 +77,11 @@ export const ContactSection = () => {
                                     <p className="text-xl font-bold">School Admin Priority Help</p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
 
                     {/* Form Column */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="relative"
-                    >
+                    <div className="relative">
                         <div className="absolute inset-0 bg-brandBlack rounded-[40px] translate-x-3 translate-y-3" />
                         <div className="relative bg-white border-2 border-brandBlack rounded-[40px] p-8 md:p-12 shadow-2xl">
                             <form onSubmit={onSubmit} className="space-y-6">
@@ -195,7 +177,7 @@ export const ContactSection = () => {
                                 )}
                             </form>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

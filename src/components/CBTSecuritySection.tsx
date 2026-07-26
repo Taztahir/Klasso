@@ -3,12 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Section } from './Section';
 import { MagneticButton } from './MagneticButton';
 import { useAuth } from '../context/AuthContext';
-import { motion, useReducedMotion } from 'framer-motion';
 
 export const CBTSecuritySection = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const shouldReduce = useReducedMotion();
 
     const handleCtaClick = () => {
         if (user) {
@@ -18,35 +16,23 @@ export const CBTSecuritySection = () => {
         }
     };
 
-    const leftVariants = {
-        hidden: { opacity: 0, x: shouldReduce ? 0 : -35 },
-        visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 80, damping: 15 } }
-    };
-
-    const rightVariants = {
-        hidden: { opacity: 0, scale: shouldReduce ? 1 : 0.92, x: shouldReduce ? 0 : 35 },
-        visible: { opacity: 1, scale: 1, x: 0, transition: { type: 'spring', stiffness: 75, damping: 15 } }
-    };
-
     return (
         <Section className="py-32 bg-cream text-brandBlack overflow-hidden">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                    <motion.div
-                        variants={leftVariants}
-                    >
+                    <div>
                         <div className="flex items-center gap-3 text-brandPurple font-bold uppercase tracking-widest text-sm mb-6">
                             <Shield size={20} />
                             Exam Integrity
                         </div>
-                        <h2 className="text-4xl md:text-6xl font-bold mb-8 leading-tight">
+                        <h2 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
                             Secure <span className="text-brandPurple">Anti-Cheat</span> Computer-Based Testing.
                         </h2>
-                        <p className="text-xl text-brandBlack/60 mb-12 leading-relaxed">
+                        <p className="text-xl text-brandBlack/60 mb-8 leading-relaxed">
                             Klasso CBT is built to run high-stakes terminal exams and class tests with complete academic integrity, even on basic school computers or tablets.
                         </p>
 
-                        <div className="space-y-8 mb-12">
+                        <div className="space-y-4 mb-4">
                             {[
                                 {
                                     title: "Tab-Switch & Focus Tracking",
@@ -77,13 +63,10 @@ export const CBTSecuritySection = () => {
                         >
                             {user ? 'Manage Exams' : 'Explore CBT Security'}
                         </MagneticButton>
-                    </motion.div>
+                    </div>
 
-                    <motion.div
-                        variants={rightVariants}
-                        className="relative"
-                    >
-                        <div className="bg-white border-2 border-brandBlack p-8 rounded-[40px] shadow-[16px_16px_0px_0px_rgba(26,26,26,1)] relative z-10">
+                    <div className="relative">
+                        <div className="bg-white border-2 border-brandBlack p-4 rounded-[40px] shadow-[16px_16px_0px_0px_rgba(26,26,26,1)] relative z-10">
                             <div className="flex items-center justify-between mb-8 pb-6 border-b-2 border-brandBlack/5">
                                 <h3 className="text-xl font-bold">Live Exam Monitor</h3>
                                 <span className="px-3 py-1 bg-red-500 text-white border-2 border-brandBlack rounded-full text-xs font-bold uppercase animate-pulse">Live</span>
@@ -101,11 +84,11 @@ export const CBTSecuritySection = () => {
                                             </div>
                                             <div>
                                                 <p className="font-bold">{item.student}</p>
-                                                <p className="text-xs text-brandBlack/40">{item.exam} • {item.time}</p>
+                                                <p className="text-[10px] text-brandBlack/40">{item.exam} • {item.time}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className={`font-bold text-xs ${item.alert ? 'text-red-500' : 'text-brandPurple'}`}>{item.status}</p>
+                                            <p className={`font-bold text-[10px] ${item.alert ? 'text-red-500' : 'text-brandPurple'}`}>{item.status}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -114,7 +97,7 @@ export const CBTSecuritySection = () => {
                         {/* Decorative elements */}
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-brandYellow/20 rounded-full blur-3xl -z-0"></div>
                         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brandPurple/20 rounded-full blur-3xl -z-0"></div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </Section>

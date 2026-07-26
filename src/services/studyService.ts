@@ -1,21 +1,3 @@
-import { supabase } from '../lib/supabase';
-import { db } from '../lib/firebase';
-import {
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    where,
-    orderBy,
-    doc,
-    updateDoc,
-    deleteDoc,
-    serverTimestamp,
-    getDoc,
-    setDoc,
-    onSnapshot
-} from 'firebase/firestore';
-
 export interface Project {
     id: string;
     user_id: string;
@@ -29,60 +11,42 @@ export interface Project {
 
 export const studyService = {
     async getProjects() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-
-        console.log('[StudyService] Fetching projects for Supabase UID:', user.id);
-
-        const q = query(
-            collection(db, 'projects'),
-            where('user_id', '==', user.id),
-            orderBy('created_at', 'desc')
-        );
-
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            created_at: doc.data().created_at?.toDate()?.toISOString() || new Date().toISOString()
-        })) as Project[];
+        const projectsStr = localStorage.getItem('klasso_projects') || '[]';
+        const projects = JSON.parse(projectsStr) as Project[];
+        return projects;
     },
 
     async createProject(project: Omit<Project, 'id' | 'created_at' | 'user_id'>) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
+        const projectsStr = localStorage.getItem('klasso_projects') || '[]';
+        const projects = JSON.parse(projectsStr) as Project[];
 
-        const docRef = await addDoc(collection(db, 'projects'), {
+        const newProject: Project = {
             ...project,
-            user_id: user.id,
-            created_at: serverTimestamp()
-        });
-
-        const newDoc = await getDoc(docRef);
-        return {
-            id: docRef.id,
-            ...newDoc.data(),
+            id: 'proj-' + Math.random().toString(36).substr(2, 9),
+            user_id: 'demo-user-id',
             created_at: new Date().toISOString()
-        } as Project;
+        };
+
+        projects.unshift(newProject);
+        localStorage.setItem('klasso_projects', JSON.stringify(projects));
+        return newProject;
     },
 
     async deleteProject(id: string) {
-        await deleteDoc(doc(db, 'projects', id));
+        const projectsStr = localStorage.getItem('klasso_projects') || '[]';
+        const projects = JSON.parse(projectsStr) as Project[];
+        const filtered = projects.filter(p => p.id !== id);
+        localStorage.setItem('klasso_projects', JSON.stringify(filtered));
     },
 
     async getSettings() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return null;
-
-        const docRef = doc(db, 'userSettings', user.id);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
+        const settingsStr = localStorage.getItem('klasso_settings');
+        if (!settingsStr) {
             const initialSettings = {
-                user_id: user.id,
+                user_id: 'demo-user-id',
                 recent_searches: [],
                 theme: 'light',
-                updated_at: serverTimestamp(),
+                updated_at: new Date().toISOString(),
                 hapticsEnabled: true,
                 isLowData: false,
                 notifications: false,
@@ -90,58 +54,26 @@ export const studyService = {
                 privacyMode: false,
                 privateProfile: false,
             };
-            await setDoc(docRef, initialSettings);
+            localStorage.setItem('klasso_settings', JSON.stringify(initialSettings));
             return initialSettings;
         }
-
-        return docSnap.data();
+        return JSON.parse(settingsStr);
     },
 
     async updateRecentSearches(term: string) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const docRef = doc(db, 'userSettings', user.id);
         const settings = await this.getSettings();
-
-        const searches = settings?.recent_searches || [];
+        const searches = settings.recent_searches || [];
         if (searches.includes(term)) return searches;
 
         const updated = [term, ...searches.slice(0, 4)];
-
-        await updateDoc(docRef, {
-            recent_searches: updated,
-            updated_at: serverTimestamp()
-        });
-
+        settings.recent_searches = updated;
+        settings.updated_at = new Date().toISOString();
+        localStorage.setItem('klasso_settings', JSON.stringify(settings));
         return updated;
     },
 
-    subscribeToProjects(callback: (payload: any) => void) {
-        const { data: { user } } = (supabase.auth as any).getLocalStorageSession() || { data: { user: null } };
-        if (!user) return { unsubscribe: () => { } };
-
-        const q = query(
-            collection(db, 'projects'),
-            where('user_id', '==', user.id),
-            orderBy('created_at', 'desc')
-        );
-
-        const unsub = onSnapshot(q, (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                const docData = { id: change.doc.id, ...change.doc.data() };
-                if (change.type === 'added') {
-                    callback({ eventType: 'INSERT', new: docData });
-                } else if (change.type === 'modified') {
-                    callback({ eventType: 'UPDATE', new: docData });
-                } else if (change.type === 'removed') {
-                    callback({ eventType: 'DELETE', old: docData });
-                }
-            });
-        }, (error) => {
-            console.error("Firestore Snapshot Error:", error);
-        });
-
-        return { unsubscribe: unsub };
+    subscribeToProjects(_callback: (payload: any) => void) {
+        // No-op for offline mode
+        return { unsubscribe: () => { } };
     }
 };

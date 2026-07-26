@@ -1,18 +1,3 @@
-import { supabase } from '../lib/supabase';
-import { db } from '../lib/firebase';
-import {
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    where,
-    orderBy,
-    doc,
-    getDoc,
-    serverTimestamp,
-    onSnapshot
-} from 'firebase/firestore';
-
 export interface QuizAttempt {
     id: string;
     user_id: string;
@@ -26,140 +11,75 @@ export interface QuizAttempt {
 
 export const quizService = {
     async saveQuizAttempt(attempt: Omit<QuizAttempt, 'id' | 'created_at' | 'user_id'>) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
+        const historyStr = localStorage.getItem('klasso_quizzes') || '[]';
+        const history = JSON.parse(historyStr) as QuizAttempt[];
 
-        const docRef = await addDoc(collection(db, 'quizzes'), {
+        const newAttempt: QuizAttempt = {
             ...attempt,
-            user_id: user.id,
-            created_at: serverTimestamp()
-        });
-
-        const newDoc = await getDoc(docRef);
-        return {
-            id: docRef.id,
-            ...newDoc.data(),
+            id: 'quiz-' + Math.random().toString(36).substr(2, 9),
+            user_id: 'demo-user-id',
             created_at: new Date().toISOString()
-        } as QuizAttempt;
+        };
+
+        history.unshift(newAttempt);
+        localStorage.setItem('klasso_quizzes', JSON.stringify(history));
+        return newAttempt;
     },
 
     async getQuizHistory() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-
-        const q = query(
-            collection(db, 'quizzes'),
-            where('user_id', '==', user.id),
-            orderBy('created_at', 'desc')
-        );
-
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            created_at: doc.data().created_at?.toDate()?.toISOString() || new Date().toISOString()
-        })) as QuizAttempt[];
+        const historyStr = localStorage.getItem('klasso_quizzes') || '[]';
+        return JSON.parse(historyStr) as QuizAttempt[];
     },
 
     async getQuizById(id: string) {
-        const docRef = doc(db, 'quizzes', id);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
+        const history = await this.getQuizHistory();
+        const found = history.find(q => q.id === id);
+        if (!found) {
             throw new Error('Quiz not found');
         }
-
-        return {
-            id: docSnap.id,
-            ...docSnap.data(),
-            created_at: docSnap.data().created_at?.toDate()?.toISOString() || new Date().toISOString()
-        } as QuizAttempt;
+        return found;
     },
 
     async getStats() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return { totalQuizzes: 0, avgScore: 0 };
+        const history = await this.getQuizHistory();
+        if (history.length === 0) return { totalQuizzes: 0, avgScore: 0 };
 
-        const q = query(collection(db, 'quizzes'), where('user_id', '==', user.id));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) return { totalQuizzes: 0, avgScore: 0 };
-
-        const data = querySnapshot.docs.map(doc => doc.data());
-        const totalScore = data.reduce((acc, curr) => acc + (curr.score / curr.total_questions), 0);
-
+        const totalScore = history.reduce((acc, curr) => acc + (curr.score / curr.total_questions), 0);
         return {
-            totalQuizzes: data.length,
-            avgScore: Math.round((totalScore / data.length) * 100)
+            totalQuizzes: history.length,
+            avgScore: Math.round((totalScore / history.length) * 100)
         };
     },
 
     subscribeToStats(callback: (stats: { totalQuizzes: number, avgScore: number }) => void) {
-        const { data: { user } } = (supabase.auth as any).getLocalStorageSession() || { data: { user: null } };
-        if (!user) return { unsubscribe: () => { } };
-
-        const q = query(collection(db, 'quizzes'), where('user_id', '==', user.id));
-
-        const unsub = onSnapshot(q, (snapshot) => {
-            if (snapshot.empty) {
-                callback({ totalQuizzes: 0, avgScore: 0 });
-                return;
-            }
-
-            const data = snapshot.docs.map(doc => doc.data());
-            const totalScore = data.reduce((acc, curr) => acc + (curr.score / curr.total_questions), 0);
-
-            callback({
-                totalQuizzes: data.length,
-                avgScore: Math.round((totalScore / data.length) * 100)
-            });
-        });
-
-        return { unsubscribe: unsub };
+        this.getStats().then(callback);
+        return { unsubscribe: () => { } };
     }
 };
 
 export const studySessionService = {
     async logStudyTime(durationSeconds: number) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const sessionsStr = localStorage.getItem('klasso_study_sessions') || '[]';
+        const sessions = JSON.parse(sessionsStr);
 
-        await addDoc(collection(db, 'studySessions'), {
-            user_id: user.id,
+        sessions.push({
+            user_id: 'demo-user-id',
             duration: durationSeconds,
-            started_at: serverTimestamp(),
-            created_at: serverTimestamp()
+            started_at: new Date().toISOString(),
+            created_at: new Date().toISOString()
         });
+
+        localStorage.setItem('klasso_study_sessions', JSON.stringify(sessions));
     },
 
     async getTotalStudyTime() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return 0;
-
-        const q = query(collection(db, 'studySessions'), where('user_id', '==', user.id));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) return 0;
-
-        return querySnapshot.docs.reduce((acc, curr) => acc + (curr.data().duration || 0), 0);
+        const sessionsStr = localStorage.getItem('klasso_study_sessions') || '[]';
+        const sessions = JSON.parse(sessionsStr);
+        return sessions.reduce((acc: number, curr: any) => acc + (curr.duration || 0), 0);
     },
 
     subscribeToTotalTime(callback: (seconds: number) => void) {
-        const { data: { user } } = (supabase.auth as any).getLocalStorageSession() || { data: { user: null } };
-        if (!user) return { unsubscribe: () => { } };
-
-        const q = query(collection(db, 'studySessions'), where('user_id', '==', user.id));
-
-        const unsub = onSnapshot(q, (snapshot) => {
-            if (snapshot.empty) {
-                callback(0);
-                return;
-            }
-
-            const total = snapshot.docs.reduce((acc, curr) => acc + (curr.data().duration || 0), 0);
-            callback(total);
-        });
-
-        return { unsubscribe: unsub };
+        this.getTotalStudyTime().then(callback);
+        return { unsubscribe: () => { } };
     }
 };

@@ -1,19 +1,3 @@
-import { supabase } from '../lib/supabase';
-import { db } from '../lib/firebase';
-import {
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    where,
-    orderBy,
-    doc,
-    updateDoc,
-    deleteDoc,
-    serverTimestamp,
-    getDoc
-} from 'firebase/firestore';
-
 export interface ChatMessage {
     id: string;
     session_id: string;
@@ -33,105 +17,84 @@ export interface ChatSession {
 
 export const chatService = {
     async createSession(title?: string) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
+        const sessionsStr = localStorage.getItem('klasso_chat_sessions') || '[]';
+        const sessions = JSON.parse(sessionsStr) as ChatSession[];
 
-        const docRef = await addDoc(collection(db, 'chatSessions'), {
-            user_id: user.id,
-            title: title || 'New Conversation',
-            created_at: serverTimestamp()
-        });
-
-        return {
-            id: docRef.id,
-            user_id: user.id,
+        const newSession: ChatSession = {
+            id: 'chat-sess-' + Math.random().toString(36).substr(2, 9),
+            user_id: 'demo-user-id',
             title: title || 'New Conversation',
             created_at: new Date().toISOString()
-        } as ChatSession;
+        };
+
+        sessions.unshift(newSession);
+        localStorage.setItem('klasso_chat_sessions', JSON.stringify(sessions));
+        return newSession;
     },
 
     async getSessions() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-
-        const q = query(
-            collection(db, 'chatSessions'),
-            where('user_id', '==', user.id),
-            orderBy('created_at', 'desc')
-        );
-
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })) as ChatSession[];
+        const sessionsStr = localStorage.getItem('klasso_chat_sessions') || '[]';
+        return JSON.parse(sessionsStr) as ChatSession[];
     },
 
     async getMessages(sessionId: string) {
-        const q = query(
-            collection(db, 'chatMessages'),
-            where('session_id', '==', sessionId),
-            orderBy('created_at', 'asc')
-        );
-
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            created_at: doc.data().created_at?.toDate()?.toISOString() || new Date().toISOString()
-        })) as ChatMessage[];
+        const messagesStr = localStorage.getItem('klasso_chat_messages') || '[]';
+        const messages = JSON.parse(messagesStr) as ChatMessage[];
+        return messages.filter(m => m.session_id === sessionId);
     },
 
     async saveMessage(sessionId: string, role: 'user' | 'model', content: string) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
+        const messagesStr = localStorage.getItem('klasso_chat_messages') || '[]';
+        const messages = JSON.parse(messagesStr) as ChatMessage[];
 
-        const docRef = await addDoc(collection(db, 'chatMessages'), {
+        const newMessage: ChatMessage = {
+            id: 'msg-' + Math.random().toString(36).substr(2, 9),
             session_id: sessionId,
-            user_id: user.id,
+            user_id: 'demo-user-id',
             role,
             content,
             is_liked: false,
-            created_at: serverTimestamp()
-        });
+            created_at: new Date().toISOString()
+        };
 
-        const newDoc = await getDoc(docRef);
-        return {
-            id: docRef.id,
-            ...newDoc.data()
-        } as ChatMessage;
+        messages.push(newMessage);
+        localStorage.setItem('klasso_chat_messages', JSON.stringify(messages));
+        return newMessage;
     },
 
     async updateMessage(messageId: string, content: string) {
-        const docRef = doc(db, 'chatMessages', messageId);
-        await updateDoc(docRef, { content });
-        const updatedDoc = await getDoc(docRef);
-        return {
-            id: updatedDoc.id,
-            ...updatedDoc.data()
-        } as ChatMessage;
+        const messagesStr = localStorage.getItem('klasso_chat_messages') || '[]';
+        const messages = JSON.parse(messagesStr) as ChatMessage[];
+        const idx = messages.findIndex(m => m.id === messageId);
+        if (idx !== -1) {
+            messages[idx].content = content;
+            localStorage.setItem('klasso_chat_messages', JSON.stringify(messages));
+            return messages[idx];
+        }
+        throw new Error('Message not found');
     },
 
     async toggleLike(messageId: string, isLiked: boolean) {
-        const docRef = doc(db, 'chatMessages', messageId);
-        await updateDoc(docRef, { is_liked: isLiked });
-        const updatedDoc = await getDoc(docRef);
-        return {
-            id: updatedDoc.id,
-            ...updatedDoc.data()
-        } as ChatMessage;
+        const messagesStr = localStorage.getItem('klasso_chat_messages') || '[]';
+        const messages = JSON.parse(messagesStr) as ChatMessage[];
+        const idx = messages.findIndex(m => m.id === messageId);
+        if (idx !== -1) {
+            messages[idx].is_liked = isLiked;
+            localStorage.setItem('klasso_chat_messages', JSON.stringify(messages));
+            return messages[idx];
+        }
+        throw new Error('Message not found');
     },
 
     async deleteSession(sessionId: string) {
-        // Delete the session document
-        await deleteDoc(doc(db, 'chatSessions', sessionId));
+        const sessionsStr = localStorage.getItem('klasso_chat_sessions') || '[]';
+        const sessions = JSON.parse(sessionsStr) as ChatSession[];
+        const filteredSessions = sessions.filter(s => s.id !== sessionId);
+        localStorage.setItem('klasso_chat_sessions', JSON.stringify(filteredSessions));
 
-        // Note: In Firestore, you usually delete messages via a Cloud Function or batch
-        // For now, we'll just delete the session. In a real app, you'd want to clean up messages too.
-        const q = query(collection(db, 'chatMessages'), where('session_id', '==', sessionId));
-        const messagesSnapshot = await getDocs(q);
-        messagesSnapshot.forEach(async (messageDoc) => {
-            await deleteDoc(doc(db, 'chatMessages', messageDoc.id));
-        });
+        const messagesStr = localStorage.getItem('klasso_chat_messages') || '[]';
+        const messages = JSON.parse(messagesStr) as ChatMessage[];
+        const filteredMessages = messages.filter(m => m.session_id !== sessionId);
+        localStorage.setItem('klasso_chat_messages', JSON.stringify(filteredMessages));
     }
 };

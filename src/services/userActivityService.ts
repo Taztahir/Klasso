@@ -1,6 +1,3 @@
-import { db } from '../lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
-
 export interface LeaderboardEntry {
     user_id: string;
     total_xp: number;
@@ -14,59 +11,24 @@ export interface LeaderboardEntry {
 
 export const userActivityService = {
     /**
-     * Fetches the global leaderboard from Firestore.
-     * Aggregates XP from quiz attempts and joins with user profiles.
+     * Fetches the global leaderboard.
      */
     async getGlobalLeaderboard(): Promise<LeaderboardEntry[]> {
-        try {
-            // 1. Fetch all quizzes to aggregate XP (In a large app, this would be a pre-calculated collection)
-            const quizzesSnap = await getDocs(collection(db, 'quizzes'));
-            const userStats: Record<string, { total_xp: number, quizzes_completed: number }> = {};
-
-            quizzesSnap.docs.forEach(doc => {
-                const data = doc.data();
-                const userId = data.user_id;
-                const xp = (data.score || 0) * 10; // XP logic: 10 per correct answer
-
-                if (!userStats[userId]) {
-                    userStats[userId] = { total_xp: 0, quizzes_completed: 0 };
-                }
-                userStats[userId].total_xp += xp;
-                userStats[userId].quizzes_completed += 1;
-            });
-
-            // 2. Fetch profiles to get names/avatars
-            const profilesSnap = await getDocs(collection(db, 'profiles'));
-            const profiles: Record<string, any> = {};
-            profilesSnap.docs.forEach(doc => {
-                profiles[doc.id] = doc.data();
-            });
-
-            // 3. Assemble leaderboard
-            const leaderboard: LeaderboardEntry[] = Object.keys(userStats).map(userId => ({
-                user_id: userId,
-                total_xp: userStats[userId].total_xp,
-                quizzes_completed: userStats[userId].quizzes_completed,
-                name: profiles[userId]?.full_name || profiles[userId]?.username || 'Academic Scholar',
-                avatar: profiles[userId]?.avatar_url || null,
-                streak: Math.floor(Math.random() * 5) + 1, // Mock streak for now
-                trend: 'same'
-            }));
-
-            // 4. Sort by XP
-            return leaderboard.sort((a, b) => b.total_xp - a.total_xp);
-        } catch (error) {
-            console.error("Leaderboard Service Error:", error);
-            return [];
-        }
+        // Return a realistic static leaderboard that represents users in the platform offline
+        const mockLeaderboard: LeaderboardEntry[] = [
+            { user_id: '1', total_xp: 3200, quizzes_completed: 45, name: 'Principal Kunle', streak: 12, trend: 'up' },
+            { user_id: 'demo-user-id', total_xp: 1540, quizzes_completed: 18, name: 'Demo Principal', streak: 5, trend: 'same' },
+            { user_id: '3', total_xp: 1200, quizzes_completed: 14, name: 'Amaka Eze', streak: 3, trend: 'down' },
+            { user_id: '4', total_xp: 850, quizzes_completed: 9, name: 'Tunde Olatunji', streak: 2, trend: 'up' },
+            { user_id: '5', total_xp: 500, quizzes_completed: 6, name: 'Fatima Musa', streak: 1, trend: 'same' },
+        ];
+        return mockLeaderboard.sort((a, b) => b.total_xp - a.total_xp);
     },
 
     /**
-     * Fetches the current user's study streak (consecutive active days).
+     * Fetches the current user's study streak.
      */
     async getUserStreak(): Promise<number> {
-        // Note: Full implementation logic requires tracking consecutive daily study sessions.
-        // Returning 0 for now until the backend aggregate is fully configured.
-        return 0;
+        return 5; // Static demo streak
     }
 };

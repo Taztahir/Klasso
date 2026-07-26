@@ -1,4 +1,3 @@
-import { useLocation } from 'react-router-dom';
 import { Menu, Bell, Flame, Shield, User as UserIcon, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -8,7 +7,6 @@ interface HeaderProps {
 
 export const Header = ({ onOpenSidebar }: HeaderProps) => {
     const { user } = useAuth();
-    const location = useLocation();
 
     // const currentSection = location.pathname.includes('settings') ? 'Settings' : 'AI Chat';
 

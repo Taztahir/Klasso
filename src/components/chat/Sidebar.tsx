@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MessageSquare, Settings, LogOut, ChevronLeft, ChevronRight, User, X, LayoutDashboard, Brain } from 'lucide-react';
+import { MessageSquare, Settings, LogOut, ChevronLeft, ChevronRight, User, X, Brain } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {

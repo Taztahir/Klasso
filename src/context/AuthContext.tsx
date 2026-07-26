@@ -5,7 +5,7 @@ import { db } from '../lib/firebase';
 import { doc, setDoc, getDoc, deleteDoc, collection, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { useToast } from './ToastContext';
 
-interface AuthContextType {
+export interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;

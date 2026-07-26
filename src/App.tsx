@@ -8,8 +8,8 @@ import { SignUpPage } from './pages/auth/SignUpPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { ChatLayout } from './components/chat/ChatLayout';
+// import { ProtectedRoute } from './components/ProtectedRoute';
+// import { ChatLayout } from './components/chat/ChatLayout';
 import { ChatView } from './pages/chat/ChatView';
 import { QuizView } from './pages/chat/QuizView';
 import { SettingsView } from './pages/chat/SettingsView';
@@ -34,13 +34,13 @@ function App() {
                                     <Route path="/signup" element={<SignUpPage />} />
 
                                     {/* New AI Chat Workspace Routes */}
-                                    <Route element={<ProtectedRoute />}>
-                                        <Route element={<ChatLayout />}>
-                                            <Route path="/chat" element={<ChatView />} />
-                                            <Route path="/quiz" element={<QuizView />} />
-                                            <Route path="/settings" element={<SettingsView />} />
-                                        </Route>
-                                    </Route>
+                                    {/* <Route element={<ProtectedRoute />}> */}
+                                    {/* <Route element={<ChatLayout />}> */}
+                                    <Route path="/chat" element={<ChatView />} />
+                                    <Route path="/quiz" element={<QuizView />} />
+                                    <Route path="/settings" element={<SettingsView />} />
+                                    {/* </Route> */}
+                                    {/* </Route> */}
 
                                     <Route path="*" element={
                                         <div className="flex flex-col items-center justify-center py-24 px-6 text-center">

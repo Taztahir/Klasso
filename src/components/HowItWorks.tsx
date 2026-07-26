@@ -24,7 +24,7 @@ export const HowItWorks = () => {
     ];
 
     return (
-        <Section id="how-it-works" className="py-32 bg-brandBlack text-white">
+        <Section id="how-it-works" className="py-20 bg-brandBlack text-white">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-20">
                     <h2 className="text-4xl md:text-5xl font-bold mb-6">How It Works</h2>

@@ -100,9 +100,18 @@ export const Navbar = () => {
                     </div>
                     <div className="pt-6 border-t border-brandBlack/5 flex flex-col gap-3">
                         {user ? (
-                            <Link to="/chat" onClick={toggleMenu} className="bg-brandPurple text-white px-6 py-4 rounded-xl text-center font-bold">
-                                Go to Portal
-                            </Link>
+                            <>
+                                <Link to="/chat" onClick={toggleMenu} className="bg-brandPurple text-white px-6 py-4 rounded-xl text-center font-bold">
+                                    Go to Portal
+                                </Link>
+                                <button
+                                    onClick={async () => { await signOut(); navigate('/'); setIsOpen(false); }}
+                                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-center font-bold border-2 border-red-300 text-red-500 hover:bg-red-50 transition-colors"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    Log Out
+                                </button>
+                            </>
                         ) : (
                             <>
                                 <Link to="/login" onClick={toggleMenu} className="px-6 py-4 rounded-xl text-center font-bold border-2 border-brandPurple text-brandPurple">

@@ -50,7 +50,7 @@ export const PricingSection = () => {
     ];
 
     return (
-        <Section id="pricing" className="bg-cream py-32 px-6 text-brandBlack">
+        <Section id="pricing" className="bg-cream py-20 px-6 text-brandBlack">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-20">
                     <span className="text-brandPurple font-bold uppercase tracking-widest text-xs block">Pricing Plans</span>
@@ -62,10 +62,10 @@ export const PricingSection = () => {
                     {plans.map((plan, i) => (
                         <div
                             key={i}
-                            className={`relative p-5 rounded-[40px] border-4 bg-white flex flex-col transition-all
+                            className={`relative p-6 rounded-[40px] border-4 bg-white flex flex-col transition-all
                                 ${plan.popular
-                                    ? 'border-brandPurple ring-4 ring-brandPurple/30 ring-offset-2 shadow-[12px_12px_0px_0px_rgba(168,85,247,0.4)] scale-[1.04] hover:translate-x-1 hover:translate-y-1 hover:shadow-none'
-                                    : 'border-brandBlack shadow-[12px_12px_0px_0px_rgba(24,24,27,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none'
+                                    ? 'border-brandPurple ring-4 ring-brandPurple/30 ring-offset-2 scale-[1.04] hover:translate-x-1 hover:translate-y-1 hover:shadow-none'
+                                    : 'border-brandBlack hover:translate-x-1 hover:translate-y-1 hover:shadow-none'
                                 }`}
                         >
                             {plan.popular && (

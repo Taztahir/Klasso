@@ -77,13 +77,13 @@ export const Testimonials = () => {
     return (
         <Section id="testimonials" className="py-32 bg-white overflow-hidden">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="flex flex-col md:flex-row justify-between items-start gap-10 mb-16">
+                <div className="flex flex-col md:flex-row justify-between items-start gap-10">
                     <div className="max-w-2xl">
                         <div className="flex items-center gap-2 text-brandPurple font-bold uppercase tracking-wider text-sm mb-4">
                             <MessageSquare size={18} />
                             Success Stories
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-extrabold italic text-brandBlack">
+                        <h2 className="text-3xl md:text-4xl font-extrabold italic text-brandBlack">
                             Loved by Proprietors, Teachers, & Parents.
                         </h2>
                     </div>
@@ -127,7 +127,7 @@ export const Testimonials = () => {
                             {reviews.map((review, i) => (
                                 <div
                                     key={i}
-                                    className="shrink-0 px-4"
+                                    className="shrink-0 px-4 py-10"
                                     style={{ width: `${100 / visibleCount}%` }}
                                 >
                                     <motion.div
@@ -137,7 +137,7 @@ export const Testimonials = () => {
                                         <div className="flex flex-col gap-6 flex-1">
                                             <div className="flex justify-between items-start">
                                                 <div className="shrink-0 relative">
-                                                    <div className={`w-20 h-20 ${review.color} rounded-2xl border-4 border-brandBlack flex items-center justify-center text-2xl text-white font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`}>
+                                                    <div className={`w-12 h-12 ${review.color} rounded-2xl border-4 border-brandBlack flex items-center justify-center text-2xl text-white font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]`}>
                                                         {review.avatar}
                                                     </div>
                                                     <div className="absolute -bottom-2 -right-2 bg-brandYellow border-2 border-brandBlack p-2 rounded-xl">
@@ -149,12 +149,12 @@ export const Testimonials = () => {
                                                 </div>
                                             </div>
 
-                                            <p className="text-lg font-bold leading-tight italic text-brandBlack flex-1">
+                                            <p className="text-sm font-bold leading-tight italic text-brandBlack flex-1">
                                                 "{review.content}"
                                             </p>
 
                                             <div className="pt-6 border-t-2 border-brandBlack/5">
-                                                <p className="text-xl font-black uppercase tracking-tight leading-none mb-1">{review.name}</p>
+                                                <p className="text-sm font-black uppercase tracking-tight leading-none mb-1">{review.name}</p>
                                                 <p className="text-brandPurple font-black uppercase text-[10px] tracking-widest">{review.role}</p>
                                             </div>
                                         </div>

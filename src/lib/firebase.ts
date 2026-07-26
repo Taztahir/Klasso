@@ -1,0 +1,33 @@
+import { initializeApp } from 'firebase/app';
+
+const firebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { getAuth, signInAnonymously } from 'firebase/auth';
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Cloud Firestore with modern multi-tab persistence
+export const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+    })
+});
+
+// Initialize Firebase Auth
+export const auth = getAuth(app);
+
+// Sync Firebase Auth with Supabase implicitly (Anonymous login for rule context)
+if (typeof window !== 'undefined') {
+    signInAnonymously(auth).catch(err => {
+        console.warn('Firebase Anonymous Auth failed:', err);
+    });
+}

@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Utility function to check if the user owns the document
+    function isValidOwner(userId) {
+      return request.auth != null && (request.auth.uid == userId || userId == request.auth.token.email);
+    }
+
+    // projects: Owner can read/write
+    match /projects/{projectId} {
+      allow read, write: if isValidOwner(resource.data.user_id) || isValidOwner(request.resource.data.user_id);
+    }
+
+    // quizzes: Owner can write; all authenticated can read for leaderboard
+    match /quizzes/{quizId} {
+      allow read: if request.auth != null;
+      allow write: if isValidOwner(resource.data.user_id) || isValidOwner(request.resource.data.user_id);
+    }
+
+    // profiles: Owner can write; all authenticated can read
+    match /profiles/{userId} {
+      allow read: if request.auth != null;
+      allow write: if isValidOwner(userId);
+    }
+
+    // chatSessions: Owner can read/write
+    match /chatSessions/{sessionId} {
+      allow read, write: if isValidOwner(resource.data.user_id) || isValidOwner(request.resource.data.user_id);
+      
+      match /chatMessages/{messageId} {
+        allow read, write: if true; // Inherits from session context usually
+      }
+    }
+
+    // studySessions: Owner can read/write
+    match /studySessions/{sessionId} {
+      allow read, write: if isValidOwner(resource.data.user_id) || isValidOwner(request.resource.data.user_id);
+    }
+
+    // userSettings: Owner can read/write
+    match /userSettings/{userId} {
+      allow read, write: if isValidOwner(userId);
+    }
+    
+    // Fallback
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

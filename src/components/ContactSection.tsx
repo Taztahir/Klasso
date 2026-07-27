@@ -81,7 +81,7 @@ export const ContactSection = () => {
                         {/* Interactive Direct Contact Cards */}
                         <div className="space-y-3">
                             <a
-                                href="mailto:hello@klasso.app"
+                                href="mailto:taztaz162004@gmail.com"
                                 className="group flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-brandBlack/5 shadow-sm hover:shadow-md hover:border-brandBlack/20 transition-all duration-300"
                             >
                                 <div className="flex items-center gap-3.5">

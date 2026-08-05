@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import {
     Shield,
@@ -13,7 +15,7 @@ import {
     Activity,
     Wifi
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Section } from './Section';
 import { MagneticButton } from './MagneticButton';
 import { useAuth } from '../context/AuthContext';
@@ -21,7 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const CBTSecuritySection = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
+    const router = useRouter();
 
     // State Management
     const [isLivePaused, setIsLivePaused] = useState(false);
@@ -96,9 +98,9 @@ export const CBTSecuritySection = () => {
 
     const handleCtaClick = () => {
         if (user) {
-            navigate('/chat');
+            router.push('/chat');
         } else {
-            navigate('/signup');
+            router.push('/signup');
         }
     };
 

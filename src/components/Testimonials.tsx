@@ -1,3 +1,5 @@
+'use client';
+
 import { Star, MessageSquare, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { Section } from './Section';
 import { useState, useEffect, useCallback } from 'react';

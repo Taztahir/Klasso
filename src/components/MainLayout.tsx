@@ -1,11 +1,12 @@
+'use client';
+
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { ScrollToTopButton } from './ScrollToTopButton';
 import { LegalModal } from './LegalModal';
 
-export const MainLayout = () => {
+export const MainLayout = ({ children }: { children: React.ReactNode }) => {
     const [modalType, setModalType] = useState<'privacy' | 'terms' | 'cookie' | 'about' | 'help' | 'blog' | null>(null);
 
     const openModal = (type: 'privacy' | 'terms' | 'cookie' | 'about' | 'help' | 'blog') => setModalType(type);
@@ -15,7 +16,7 @@ export const MainLayout = () => {
         <div className="flex flex-col min-h-screen">
             <Navbar />
             <main className="flex-1">
-                <Outlet />
+                {children}
             </main>
             <Footer onOpenModal={openModal} />
             <ScrollToTopButton />

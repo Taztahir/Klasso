@@ -1,3 +1,5 @@
+'use client';
+
 import { Section } from './Section';
 import { AlertCircle, Calendar, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';

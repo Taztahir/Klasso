@@ -1,0 +1,17 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/icon.svg/route": "/icon.svg",
+  "/page": "/",
+  "/login/page": "/login",
+  "/signup/page": "/signup",
+  "/dashboard/assignments/page": "/dashboard/assignments",
+  "/dashboard/notes/page": "/dashboard/notes",
+  "/dashboard/cbt/page": "/dashboard/cbt",
+  "/dashboard/page": "/dashboard",
+  "/dashboard/overview/page": "/dashboard/overview",
+  "/dashboard/finance/page": "/dashboard/finance",
+  "/dashboard/settings/page": "/dashboard/settings",
+  "/dashboard/report-cards/page": "/dashboard/report-cards",
+  "/dashboard/staff/page": "/dashboard/staff",
+  "/dashboard/students/page": "/dashboard/students"
+}

@@ -1,5 +1,7 @@
+'use client';
+
 import { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { motion, useScroll, useTransform, MotionValue, useMotionTemplate } from 'framer-motion';
 import { MagneticButton } from './MagneticButton';
 import { useAuth } from '../context/AuthContext';
@@ -76,7 +78,7 @@ const itemVariants = {
 
 export const Hero = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
+    const router = useRouter();
     const sectionRef = useRef<HTMLElement>(null);
 
     /* Track how far the section has scrolled out of the viewport */
@@ -87,9 +89,9 @@ export const Hero = () => {
 
     const handleCtaClick = () => {
         if (user) {
-            navigate('/chat');
+            router.push('/dashboard/overview');
         } else {
-            navigate('/signup');
+            router.push('/signup');
         }
     };
 
@@ -182,7 +184,7 @@ export const Hero = () => {
                     Run Your Private School <br className="hidden sm:block" />
                     From One{' '}
                     <span className="relative inline-block mt-2 sm:mt-0">
-                        <span className="relative z-10 px-4 py-1 text-brandBlack">#Dashboard</span>
+                        <span className="relative z-10 px-4 py-1 text-brandBlack">Dashboard</span>
                         <span className="absolute inset-0 bg-brandYellow rounded-lg -rotate-1 -z-0 animate-wiggle border-2 border-brandBlack"></span>
                     </span>
                 </motion.h1>

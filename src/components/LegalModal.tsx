@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { X, Shield, FileText, HelpCircle, BookOpen, Cookie } from 'lucide-react';
 

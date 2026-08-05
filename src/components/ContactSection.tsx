@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { Send, Mail, User, MessageSquare, Loader2, CheckCircle2, AlertCircle, ArrowUpRight, Building2 } from 'lucide-react';
 
@@ -14,7 +16,7 @@ export const ContactSection = () => {
         const form = e.currentTarget;
         const formData = new FormData(form);
 
-        const accessKey = import.meta.env.VITE_WEB3FORMS_KEY;
+        const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY || process.env.VITE_WEB3FORMS_KEY || "eb9cef46-c37d-40cc-85fe-f28fd9f45a63";
         if (!accessKey) {
             console.error("Web3Forms API key is missing from environment variables.");
             setStatus('error');

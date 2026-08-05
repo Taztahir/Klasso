@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef, ReactNode, MouseEvent } from 'react';
 
 interface MagneticButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

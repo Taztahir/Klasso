@@ -1,3 +1,5 @@
+'use client';
+
 import { useRef } from 'react';
 import { Section } from './Section';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';

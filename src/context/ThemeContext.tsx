@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -13,18 +15,22 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isLowData, setIsLowData] = useState(() => {
-        const saved = localStorage.getItem('lowDataMode');
-        return saved === 'true';
-    });
-
-    const [theme, setThemeState] = useState<ThemeMode>(() => {
-        const saved = localStorage.getItem('themePreference') as ThemeMode;
-        if (saved && ['light', 'dark', 'system'].includes(saved)) return saved;
-        return 'system';
-    });
-
+    // Always initialise with SSR-safe defaults so server and client render
+    // identical HTML. The real values are synced from localStorage after mount.
+    const [isLowData, setIsLowData] = useState(false);
+    const [theme, setThemeState] = useState<ThemeMode>('system');
     const [isDarkMode, setIsDarkMode] = useState(false);
+
+    // Rehydrate persisted preferences once the component mounts on the client.
+    useEffect(() => {
+        const savedLowData = localStorage.getItem('lowDataMode');
+        if (savedLowData === 'true') setIsLowData(true);
+
+        const savedTheme = localStorage.getItem('themePreference') as ThemeMode;
+        if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
+            setThemeState(savedTheme);
+        }
+    }, []);
 
     useEffect(() => {
         localStorage.setItem('lowDataMode', isLowData.toString());

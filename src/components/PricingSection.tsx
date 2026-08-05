@@ -1,5 +1,7 @@
+'use client';
+
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Section } from './Section';
 import { Check, Zap, HelpCircle } from 'lucide-react';
 import { MagneticButton } from './MagneticButton';
@@ -8,14 +10,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const PricingSection = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
+    const router = useRouter();
     const [isAnnual, setIsAnnual] = useState(false);
 
     const handleCtaClick = () => {
         if (user) {
-            navigate('/settings');
+            router.push('/settings');
         } else {
-            navigate('/signup');
+            router.push('/signup');
         }
     };
 

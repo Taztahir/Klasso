@@ -1,21 +1,24 @@
+'use client';
+
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const KlassoLogo = () => (
     <svg aria-hidden="true" width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="8" y="8" width="84" height="84" rx="22" fill="#1E3A5F" />
         <rect x="28" y="26" width="10" height="48" rx="5" fill="#E8A838" />
-        <path d="M38 50 L66 26" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" />
-        <path d="M38 50 L66 74" stroke="#2A8C8C" stroke-width="10" stroke-linecap="round" />
+        <path d="M38 50 L66 26" stroke="#FFFFFF" strokeWidth="10" strokeLinecap="round" />
+        <path d="M38 50 L66 74" stroke="#2A8C8C" strokeWidth="10" strokeLinecap="round" />
     </svg>
 );
 
 export const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { user, signOut } = useAuth();
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -23,7 +26,7 @@ export const Navbar = () => {
         <header className="sticky top-0 z-50 bg-cream backdrop-blur-md border-b border-brandBlack/5 shadow-sm">
             <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between" aria-label="Main navigation">
                 <div className="flex items-center gap-10">
-                    <Link to="/" className="flex items-center gap-3 font-bold text-xl tracking-tight text-brandPurple">
+                    <Link href="/" className="flex items-center gap-3 font-bold text-xl tracking-tight text-brandPurple">
                         <KlassoLogo />
                         Klasso
                     </Link>
@@ -39,15 +42,17 @@ export const Navbar = () => {
                 {/* Desktop Actions */}
                 <div className="hidden lg:flex items-center gap-4">
                     {user ? (
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <Link
-                                to="/chat"
-                                className="bg-brandPurple text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:brightness-115 transition-all"
+                                href="/dashboard/overview"
+                                id="navbar-dashboard-btn"
+                                className="flex items-center gap-2 bg-brandPurple text-white border-2 border-brandBlack px-5 py-2.5 rounded-full text-sm font-bold hover:bg-brandPurple/90 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                             >
-                                Go to Portal
+                                <LayoutDashboard className="w-4 h-4" />
+                                Go to Dashboard
                             </Link>
                             <button
-                                onClick={async () => { await signOut(); navigate('/'); }}
+                                onClick={async () => { await signOut(); router.push('/'); }}
                                 className="flex items-center gap-2 p-2 text-brandBlack/60 hover:text-red-500 transition-colors text-sm font-medium"
                                 title="Log Out"
                             >
@@ -57,11 +62,11 @@ export const Navbar = () => {
                         </div>
                     ) : (
                         <>
-                            <Link to="/login" className="text-sm font-semibold text-brandBlack/70 hover:text-brandPurple transition-colors">
+                            <Link href="/login" className="text-sm font-semibold text-brandBlack/70 hover:text-brandPurple transition-colors">
                                 Log In
                             </Link>
                             <Link
-                                to="/signup"
+                                href="/signup"
                                 className="bg-brandYellow text-brandBlack border-2 border-brandBlack px-6 py-2.5 rounded-full text-sm font-bold hover:bg-brandPurple hover:text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
                             >
                                 Start Free Trial
@@ -101,12 +106,17 @@ export const Navbar = () => {
                     <div className="pt-6 border-t border-brandBlack/5 flex flex-col gap-3">
                         {user ? (
                             <>
-                                <Link to="/chat" onClick={toggleMenu} className="bg-brandPurple text-white px-6 py-4 rounded-xl text-center font-bold">
-                                    Go to Portal
+                                <Link
+                                    href="/dashboard/overview"
+                                    onClick={toggleMenu}
+                                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-center font-bold bg-brandPurple text-white border-2 border-brandBlack"
+                                >
+                                    <LayoutDashboard className="w-4 h-4" />
+                                    Go to Dashboard
                                 </Link>
                                 <button
-                                    onClick={async () => { await signOut(); navigate('/'); setIsOpen(false); }}
-                                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-center font-bold border-2 border-red-300 text-red-500 hover:bg-red-50 transition-colors"
+                                    onClick={async () => { await signOut(); router.push('/'); setIsOpen(false); }}
+                                    className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-center font-bold border-2 border-red-300 text-red-500 hover:bg-red-50 transition-colors w-full"
                                 >
                                     <LogOut className="w-4 h-4" />
                                     Log Out
@@ -114,10 +124,10 @@ export const Navbar = () => {
                             </>
                         ) : (
                             <>
-                                <Link to="/login" onClick={toggleMenu} className="px-6 py-4 rounded-xl text-center font-bold border-2 border-brandPurple text-brandPurple">
+                                <Link href="/login" onClick={toggleMenu} className="px-6 py-4 rounded-xl text-center font-bold border-2 border-brandPurple text-brandPurple">
                                     Log In
                                 </Link>
-                                <Link to="/signup" onClick={toggleMenu} className="bg-brandYellow text-brandBlack border-2 border-brandBlack px-6 py-4 rounded-full text-center font-bold">
+                                <Link href="/signup" onClick={toggleMenu} className="bg-brandYellow text-brandBlack border-2 border-brandBlack px-6 py-4 rounded-full text-center font-bold">
                                     Start Free Trial
                                 </Link>
                             </>

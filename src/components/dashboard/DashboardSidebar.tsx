@@ -42,7 +42,7 @@ const menuItems = [
     { title: 'Report Cards', url: '/dashboard/report-cards', icon: FileSpreadsheet },
     { title: 'Finance', url: '/dashboard/finance', icon: DollarSign },
     { title: 'Library', url: '#', icon: Library },
-    { title: 'Messages', url: '#', icon: MessageSquare, badge: '12' },
+    { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare, badge: '12' },
     { title: 'Settings', url: '/dashboard/settings', icon: Settings },
 ];
 

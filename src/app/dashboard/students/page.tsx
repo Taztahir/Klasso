@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { FormModal } from '@/components/dashboard/FormModal';
 import { Button } from '@/components/ui/button';
@@ -231,13 +232,13 @@ export default function StudentsPage() {
                         <Upload className="h-4 w-4 text-gray-400 rotate-180" />
                         <span>Import Students</span>
                     </button>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
+                    <Link
+                        href="/dashboard/students/add"
                         className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-brandPurple text-white hover:bg-brandPurple/90 transition-all text-xs font-bold shadow-sm cursor-pointer"
                     >
                         <Plus className="h-4.5 w-4.5" />
                         <span>Add New Student</span>
-                    </button>
+                    </Link>
                 </div>
             </div>
 

@@ -1222,7 +1222,7 @@ const menuItems = [
     },
     {
         title: 'Messages',
-        url: '#',
+        url: '/dashboard/messages',
         icon: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$message$2d$square$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__MessageSquare$3e$__["MessageSquare"],
         badge: '12'
     },

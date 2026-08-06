@@ -31,6 +31,9 @@ import {
     ArrowUpDown
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
+import { createClient } from '@/lib/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Define Student Interface matching the mockup
 interface StudentRecord {
@@ -134,12 +137,74 @@ const initialStudents: StudentRecord[] = [
 ];
 
 export default function StudentsPage() {
-    const [students, setStudents] = React.useState<StudentRecord[]>(initialStudents);
+    const { profile } = useAuth();
+    const supabase = createClient();
+
+    const [students, setStudents] = React.useState<StudentRecord[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [fetchError, setFetchError] = React.useState<string | null>(null);
+
     const [searchQuery, setSearchQuery] = React.useState('');
     const [classFilter, setClassFilter] = React.useState('all');
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [genderFilter, setGenderFilter] = React.useState('all');
     const [sortBy, setSortBy] = React.useState('newest');
+
+    const fetchStudents = React.useCallback(async () => {
+        if (!profile?.school_id) return;
+        setLoading(true);
+        setFetchError(null);
+        try {
+            const { data, error } = await supabase
+                .from('students')
+                .select('*')
+                .eq('school_id', profile.school_id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            const mapped = (data || []).map((dbStudent: any) => {
+                const fullName = [
+                    dbStudent.first_name,
+                    dbStudent.middle_name,
+                    dbStudent.last_name
+                ].filter(Boolean).join(' ');
+
+                let classColor = 'bg-[#F4F4FF] text-brandPurple border-indigo-100';
+                const grade = dbStudent.class_grade || '';
+                if (grade.includes('10A') || grade.includes('8B')) {
+                    classColor = 'bg-indigo-50 text-brandPurple border-indigo-100';
+                } else if (grade.includes('10B') || grade.includes('8A')) {
+                    classColor = 'bg-emerald-50 text-[#065F46] border-emerald-100';
+                } else if (grade.includes('9A')) {
+                    classColor = 'bg-amber-50 text-[#B45309] border-amber-100';
+                }
+
+                return {
+                    id: dbStudent.id,
+                    name: fullName,
+                    email: dbStudent.guardian_email || `${dbStudent.first_name.toLowerCase()}@klasso-student.app`,
+                    avatar: dbStudent.photo_url || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80`,
+                    admissionNo: dbStudent.admission_no || 'N/A',
+                    classGrade: dbStudent.class_grade || 'N/A',
+                    classColor,
+                    status: (dbStudent.status === 'Active' ? 'Active' : 'Inactive') as 'Active' | 'Inactive',
+                    parent: dbStudent.guardian_name || 'N/A',
+                    contact: dbStudent.guardian_phone || 'N/A'
+                };
+            });
+
+            setStudents(mapped);
+        } catch (err: any) {
+            setFetchError(err.message || 'Failed to load students record from server.');
+        } finally {
+            setLoading(false);
+        }
+    }, [profile?.school_id]);
+
+    React.useEffect(() => {
+        fetchStudents();
+    }, [fetchStudents]);
 
     const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
 
@@ -172,37 +237,44 @@ export default function StudentsPage() {
         });
     }, [students, searchQuery, classFilter, statusFilter, genderFilter]);
 
-    const handleAddStudent = (e: React.FormEvent) => {
+    const handleAddStudent = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formName || !formEmail || !formParent || !formContact) {
             toast.error('Validation Failed', { description: 'Please fill in all fields.' });
             return;
         }
 
+        if (!profile?.school_id) {
+            toast.error('School Onboarding Required', { description: 'Please configure your school first.' });
+            return;
+        }
+
         setSaving(true);
-        setTimeout(() => {
-            const nextId = String(students.length + 1);
-            const newRecord: StudentRecord = {
-                id: nextId,
-                name: formName,
-                email: formEmail,
-                avatar: `https://images.unsplash.com/photo-${1500000000000 + (students.length * 10000)}?auto=format&fit=crop&w=80&h=80&q=80`,
-                admissionNo: `KLA/24/00${nextId}`,
-                classGrade: formClass,
-                classColor: formClass.includes('10A') || formClass.includes('8B')
-                    ? 'bg-indigo-50 text-brandPurple border-indigo-100'
-                    : formClass.includes('10B') || formClass.includes('8A')
-                        ? 'bg-emerald-50 text-[#065F46] border-emerald-100'
-                        : 'bg-[#F4F4FF] text-brandPurple border-indigo-100',
-                status: formStatus,
-                parent: formParent,
-                contact: formContact
-            };
+        const nameParts = formName.trim().split(/\s+/);
+        const firstName = nameParts[0] || 'Student';
+        const lastName = nameParts.slice(1).join(' ') || 'Record';
 
-            setStudents([newRecord, ...students]);
-            setSaving(false);
+        try {
+            const { error } = await supabase
+                .from('students')
+                .insert({
+                    school_id: profile.school_id,
+                    first_name: firstName,
+                    last_name: lastName,
+                    class_grade: formClass,
+                    status: formStatus,
+                    guardian_name: formParent,
+                    guardian_phone: formContact,
+                    guardian_email: formEmail,
+                });
+
+            if (error) throw error;
+
+            toast.success('Registration Complete', {
+                description: `${formName} has been enrolled in ${formClass}.`
+            });
+
             setIsAddModalOpen(false);
-
             // Reset inputs
             setFormName('');
             setFormEmail('');
@@ -210,10 +282,12 @@ export default function StudentsPage() {
             setFormContact('');
             setFormStatus('Active');
 
-            toast.success('Registration Complete', {
-                description: `${formName} has been enrolled in ${formClass}.`
-            });
-        }, 600);
+            fetchStudents();
+        } catch (err: any) {
+            toast.error('Failed to create student', { description: err.message || 'Error occurred.' });
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -414,7 +488,27 @@ export default function StudentsPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredStudents.length > 0 ? (
+                        {loading ? (
+                            Array.from({ length: 5 }).map((_, idx) => (
+                                <TableRow key={idx}>
+                                    <TableCell colSpan={8} className="py-4 pl-6">
+                                        <div className="flex items-center gap-3">
+                                            <Skeleton className="h-9 w-9 rounded-full shrink-0" />
+                                            <div className="space-y-2 flex-1">
+                                                <Skeleton className="h-4.5 w-[220px]" />
+                                                <Skeleton className="h-3 w-[140px]" />
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : fetchError ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="text-center py-8 text-red-500 font-bold text-xs">
+                                    {fetchError}
+                                </TableCell>
+                            </TableRow>
+                        ) : filteredStudents.length > 0 ? (
                             filteredStudents.map((record) => (
                                 <TableRow key={record.id} className="border-b border-gray-100 hover:bg-slate-50/30">
                                     <TableCell className="pl-6 py-3.5">
@@ -460,10 +554,24 @@ export default function StudentsPage() {
                                                 <Eye className="h-3.5 w-3.5" />
                                             </button>
                                             <button
-                                                onClick={() => toast.info('Actions drawer is coming soon')}
-                                                className="p-1 rounded-lg border border-gray-200 hover:bg-slate-100 text-gray-500 cursor-pointer shadow-sm"
+                                                onClick={async () => {
+                                                    if (confirm(`Are you sure you want to remove ${record.name} from the school roster?`)) {
+                                                        try {
+                                                            const { error } = await supabase
+                                                                .from('students')
+                                                                .delete()
+                                                                .eq('id', record.id);
+                                                            if (error) throw error;
+                                                            toast.success('Student record deleted');
+                                                            fetchStudents();
+                                                        } catch (err: any) {
+                                                            toast.error('Deletion failed', { description: err.message });
+                                                        }
+                                                    }
+                                                }}
+                                                className="p-1 rounded-lg border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 text-gray-500 cursor-pointer shadow-sm"
                                             >
-                                                <MoreVertical className="h-3.5 w-3.5" />
+                                                <UserMinus className="h-3.5 w-3.5" />
                                             </button>
                                         </div>
                                     </TableCell>

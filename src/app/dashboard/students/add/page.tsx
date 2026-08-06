@@ -16,10 +16,13 @@ import {
     Save, 
     X,
     Check,
-    Calendar
+    Calendar,
+    Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 /* ── Step definitions ── */
 const steps = [
@@ -32,7 +35,10 @@ const steps = [
 
 export default function AddStudentPage() {
     const router = useRouter();
+    const { profile } = useAuth();
+    const supabase = createClient();
     const [currentStep, setCurrentStep] = React.useState(1);
+    const [saving, setSaving] = React.useState(false);
     
     /* Form state fields */
     const [firstName, setFirstName] = React.useState('');
@@ -102,15 +108,57 @@ export default function AddStudentPage() {
         }
     };
 
-    const handleSave = () => {
-        toast.loading('Saving student profile...');
-        setTimeout(() => {
-            toast.dismiss();
+    const handleSave = async () => {
+        if (!profile?.school_id) {
+            toast.error('Configuration Required', {
+                description: 'We could not detect an active school tenant linked to your administrator account. Please onboard a school first.'
+            });
+            return;
+        }
+
+        setSaving(true);
+        const toastId = toast.loading('Registering student profile...');
+
+        try {
+            const { data, error } = await supabase
+                .from('students')
+                .insert({
+                    school_id: profile.school_id,
+                    first_name: firstName,
+                    last_name: lastName,
+                    middle_name: middleName || null,
+                    admission_no: admissionNo || null,
+                    class_grade: classGrade,
+                    arm_stream: armStream || null,
+                    gender,
+                    dob: dob || null,
+                    blood_group: bloodGroup || null,
+                    religion: religion || null,
+                    photo_url: null, // skip photo upload logic for now
+                    status: studentStatus,
+                    guardian_name: guardianName,
+                    guardian_phone: guardianPhone,
+                    guardian_email: guardianEmail || null,
+                    guardian_relationship: relationship,
+                    address: address || null,
+                    medical_notes: `Allergies: ${allergies || 'None'}. Conditions: ${medicalConditions || 'None'}. Emergency Contact: ${emergencyContact || 'None'}`
+                })
+                .select();
+
+            if (error) throw error;
+
+            toast.dismiss(toastId);
             toast.success('Registration Complete', {
                 description: `${firstName} ${lastName} has been successfully added to ${classGrade || 'the database'}.`
             });
             router.push('/dashboard/students');
-        }, 1200);
+        } catch (err: any) {
+            toast.dismiss(toastId);
+            toast.error('Registration Failed', {
+                description: err.message || 'An unexpected error occurred while saving.'
+            });
+            setSaving(false);
+        }
     };
 
     const fullName = `${firstName} ${middleName} ${lastName}`.trim().replace(/\s+/g, ' ') || '—';
@@ -658,9 +706,10 @@ export default function AddStudentPage() {
                             <button
                                 type="button"
                                 onClick={handleSave}
-                                className="flex items-center justify-center gap-1.5 px-5 py-2 bg-brandPurple text-white rounded-xl text-xs font-black hover:bg-brandPurple/90 transition-all shadow-sm"
+                                disabled={saving}
+                                className="flex items-center justify-center gap-1.5 px-5 py-2 bg-brandPurple text-white rounded-xl text-xs font-black hover:bg-brandPurple/90 transition-all shadow-sm disabled:opacity-50"
                             >
-                                <Save className="h-4 w-4" />
+                                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                                 <span>Submit Record</span>
                             </button>
                         )}

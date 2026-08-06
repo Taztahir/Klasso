@@ -76,6 +76,7 @@ export const SignUpPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
+    const [schoolName, setSchoolName] = useState('');
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -110,6 +111,7 @@ export const SignUpPage = () => {
         const { error } = await signUp({
             email,
             password,
+            schoolName,
             options: { data: { full_name: fullName } },
         });
         if (error) {
@@ -309,6 +311,23 @@ export const SignUpPage = () => {
                                 placeholder="Your full name"
                                 required
                                 autoComplete="name"
+                                className="w-full rounded-xl border-2 border-brandBlack pl-10 pr-4 py-3.5 text-sm font-medium text-brandBlack placeholder:text-brandBlack/30 focus:outline-none focus:ring-2 transition-all"
+                                style={{ background: 'var(--cream)', '--tw-ring-color': 'var(--brand-green)' } as React.CSSProperties}
+                            />
+                        </div>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants} className="flex flex-col gap-1.5">
+                        <label htmlFor="signup-school" className="text-sm font-bold text-brandBlack ml-1">School Name</label>
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brandBlack/30 text-xs font-black">🏫</span>
+                            <input
+                                id="signup-school"
+                                type="text"
+                                value={schoolName}
+                                onChange={(e) => setSchoolName(e.target.value)}
+                                placeholder="e.g. Greenfield Academy"
+                                required
                                 className="w-full rounded-xl border-2 border-brandBlack pl-10 pr-4 py-3.5 text-sm font-medium text-brandBlack placeholder:text-brandBlack/30 focus:outline-none focus:ring-2 transition-all"
                                 style={{ background: 'var(--cream)', '--tw-ring-color': 'var(--brand-green)' } as React.CSSProperties}
                             />

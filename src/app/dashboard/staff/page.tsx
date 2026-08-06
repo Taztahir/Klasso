@@ -12,6 +12,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     Plus,
     Search,
@@ -31,9 +32,13 @@ import {
     Monitor,
     Library,
     Landmark,
+    Pencil,
+    Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ResponsiveContainer, LineChart, Line } from 'recharts';
+import { useAuth } from '@/context/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 /* ─────────────────────────────────────────────
    Types
@@ -55,94 +60,18 @@ interface StaffRecord {
 }
 
 /* ─────────────────────────────────────────────
-   Mock data — 7 rows matching the mockup
+   Department icon mapping for live records
 ───────────────────────────────────────────── */
-const initialStaff: StaffRecord[] = [
-    {
-        id: 'STF001',
-        name: 'Dr. Sarah Jenkins',
-        title: 'Head of Mathematics',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80',
-        role: 'Administrator',
-        department: 'Administration',
-        departmentIcon: Landmark,
-        email: 's.jenkins@klasso.edu.ng',
-        phone: '+234 806 123 4567',
-        status: 'Active',
-    },
-    {
-        id: 'STF002',
-        name: 'Mr. Kamal Tahir',
-        title: 'Mathematics Teacher',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80',
-        role: 'Teacher',
-        department: 'Mathematics',
-        departmentIcon: Calculator,
-        email: 'k.tahir@klasso.edu.ng',
-        phone: '+234 803 987 6543',
-        status: 'Active',
-    },
-    {
-        id: 'STF003',
-        name: 'Mrs. Aisha Lawal',
-        title: 'English Teacher',
-        avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=80&h=80&q=80',
-        role: 'Teacher',
-        department: 'English Language',
-        departmentIcon: BookOpen,
-        email: 'a.lawal@klasso.edu.ng',
-        phone: '+234 809 234 5678',
-        status: 'Active',
-    },
-    {
-        id: 'STF004',
-        name: 'Mr. Daniel Johnson',
-        title: 'Physics Teacher',
-        avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=80&h=80&q=80',
-        role: 'Teacher',
-        department: 'Sciences',
-        departmentIcon: FlaskConical,
-        email: 'd.johnson@klasso.edu.ng',
-        phone: '+234 801 345 6789',
-        status: 'On Leave',
-    },
-    {
-        id: 'STF005',
-        name: 'Mrs. Grace Okafor',
-        title: 'Primary School Teacher',
-        avatar: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=80&h=80&q=80',
-        role: 'Teacher',
-        department: 'Primary School',
-        departmentIcon: GraduationCap,
-        email: 'g.okafor@klasso.edu.ng',
-        phone: '+234 802 456 7890',
-        status: 'Active',
-    },
-    {
-        id: 'STF006',
-        name: 'Mr. Usman Yusuf',
-        title: 'ICT Instructor',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80&q=80',
-        role: 'Support Staff',
-        department: 'ICT',
-        departmentIcon: Monitor,
-        email: 'u.yusuf@klasso.edu.ng',
-        phone: '+234 805 678 9012',
-        status: 'Active',
-    },
-    {
-        id: 'STF007',
-        name: 'Mrs. Fatima Bello',
-        title: 'Librarian',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&h=80&q=80',
-        role: 'Support Staff',
-        department: 'Library',
-        departmentIcon: Library,
-        email: 'f.bello@klasso.edu.ng',
-        phone: '+234 803 210 9876',
-        status: 'Inactive',
-    },
-];
+const departmentIcons: Record<string, React.ElementType> = {
+    Administration: Landmark,
+    Mathematics: Calculator,
+    'English Language': BookOpen,
+    Sciences: FlaskConical,
+    'Primary School': GraduationCap,
+    ICT: Monitor,
+    Library: Library,
+    'Support Staff': Building2,
+};
 
 /* ─────────────────────────────────────────────
    Mini sparkline data for stat cards
@@ -257,12 +186,18 @@ function StatusBadge({ status }: { status: StaffStatus }) {
    Page Component
 ───────────────────────────────────────────── */
 export default function StaffPage() {
-    const [staff, setStaff] = React.useState<StaffRecord[]>(initialStaff);
+    const { profile } = useAuth();
+    const supabase = createClient();
+
+    const [staff, setStaff] = React.useState<StaffRecord[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [fetchError, setFetchError] = React.useState<string | null>(null);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [deptFilter, setDeptFilter] = React.useState('all');
     const [roleFilter, setRoleFilter] = React.useState('all');
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [isAddModalOpen, setIsAddModalOpen] = React.useState(false);
+    const [editingStaffId, setEditingStaffId] = React.useState<string | null>(null);
 
     // Form state
     const [formName, setFormName] = React.useState('');
@@ -273,6 +208,63 @@ export default function StaffPage() {
     const [formPhone, setFormPhone] = React.useState('');
     const [formStatus, setFormStatus] = React.useState<StaffStatus>('Active');
     const [saving, setSaving] = React.useState(false);
+
+    const resetStaffForm = React.useCallback(() => {
+        setFormName('');
+        setFormTitle('');
+        setFormRole('Teacher');
+        setFormDept('Mathematics');
+        setFormEmail('');
+        setFormPhone('');
+        setFormStatus('Active');
+    }, []);
+
+    const fetchStaff = React.useCallback(async () => {
+        if (!profile?.school_id) return;
+
+        setLoading(true);
+        setFetchError(null);
+
+        try {
+            const { data, error } = await supabase
+                .from('staff')
+                .select('*')
+                .eq('school_id', profile.school_id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            const mapped = (data || []).map((dbStaff: any) => {
+                const fullName = dbStaff.full_name || dbStaff.name || [dbStaff.first_name, dbStaff.middle_name, dbStaff.last_name].filter(Boolean).join(' ') || 'Unnamed Staff';
+                const role = ['Administrator', 'Teacher', 'Support Staff'].includes(dbStaff.role) ? dbStaff.role : 'Teacher';
+                const status = ['Active', 'On Leave', 'Inactive'].includes(dbStaff.status) ? dbStaff.status : 'Active';
+                const department = dbStaff.department || 'Mathematics';
+
+                return {
+                    id: dbStaff.id,
+                    name: fullName,
+                    title: dbStaff.title || `${role} Profile`,
+                    avatar: dbStaff.avatar_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80&q=80',
+                    role: role as StaffRole,
+                    department,
+                    departmentIcon: departmentIcons[department] || Building2,
+                    email: dbStaff.email || 'N/A',
+                    phone: dbStaff.phone || 'N/A',
+                    status: status as StaffStatus,
+                } satisfies StaffRecord;
+            });
+
+            setStaff(mapped);
+        } catch (err: any) {
+            setFetchError(err.message || 'Failed to load staff records from the server.');
+        } finally {
+            setLoading(false);
+        }
+    }, [profile?.school_id, supabase]);
+
+    React.useEffect(() => {
+        fetchStaff();
+    }, [fetchStaff]);
 
     /* Filter */
     const filtered = React.useMemo(() => {
@@ -289,33 +281,118 @@ export default function StaffPage() {
         });
     }, [staff, searchQuery, deptFilter, roleFilter, statusFilter]);
 
+    const openAddModal = () => {
+        resetStaffForm();
+        setEditingStaffId(null);
+        setIsAddModalOpen(true);
+    };
+
+    const openEditModal = (member: StaffRecord) => {
+        setEditingStaffId(member.id);
+        setFormName(member.name);
+        setFormTitle(member.title);
+        setFormRole(member.role);
+        setFormDept(member.department);
+        setFormEmail(member.email);
+        setFormPhone(member.phone);
+        setFormStatus(member.status);
+        setIsAddModalOpen(true);
+    };
+
     /* Add staff handler */
-    const handleAdd = (e: React.FormEvent) => {
+    const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formName || !formEmail || !formPhone) {
             toast.error('Fill in all required fields.');
             return;
         }
+
+        if (!profile?.school_id) {
+            toast.error('School Onboarding Required', { description: 'Please configure your school first.' });
+            return;
+        }
+
         setSaving(true);
-        setTimeout(() => {
-            const rec: StaffRecord = {
-                id: `STF${String(staff.length + 1).padStart(3, '0')}`,
-                name: formName,
-                title: formTitle || formRole,
-                avatar: `https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80&q=80`,
-                role: formRole,
-                department: formDept,
-                departmentIcon: Building2,
-                email: formEmail,
-                phone: formPhone,
-                status: formStatus,
-            };
-            setStaff([rec, ...staff]);
-            setSaving(false);
-            setIsAddModalOpen(false);
-            setFormName(''); setFormTitle(''); setFormEmail(''); setFormPhone('');
+        try {
+            const { error } = await supabase
+                .from('staff')
+                .insert({
+                    school_id: profile.school_id,
+                    name: formName,
+                    title: formTitle || formRole,
+                    role: formRole,
+                    department: formDept,
+                    email: formEmail,
+                    phone: formPhone,
+                    status: formStatus,
+                });
+
+            if (error) throw error;
+
             toast.success('Staff member registered!', { description: `${formName} added as ${formRole}.` });
-        }, 600);
+            setIsAddModalOpen(false);
+            resetStaffForm();
+            await fetchStaff();
+        } catch (err: any) {
+            toast.error('Failed to create staff member', { description: err.message || 'Error occurred.' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleEdit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingStaffId) return;
+        if (!formName || !formEmail || !formPhone) {
+            toast.error('Fill in all required fields.');
+            return;
+        }
+
+        setSaving(true);
+        try {
+            const { error } = await supabase
+                .from('staff')
+                .update({
+                    name: formName,
+                    title: formTitle || formRole,
+                    role: formRole,
+                    department: formDept,
+                    email: formEmail,
+                    phone: formPhone,
+                    status: formStatus,
+                })
+                .eq('id', editingStaffId);
+
+            if (error) throw error;
+
+            toast.success('Staff member updated', { description: `${formName} was updated successfully.` });
+            setIsAddModalOpen(false);
+            setEditingStaffId(null);
+            resetStaffForm();
+            await fetchStaff();
+        } catch (err: any) {
+            toast.error('Failed to update staff member', { description: err.message || 'Error occurred.' });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDelete = async (member: StaffRecord) => {
+        if (!window.confirm(`Are you sure you want to remove ${member.name} from the school staff roster?`)) return;
+
+        try {
+            const { error } = await supabase
+                .from('staff')
+                .delete()
+                .eq('id', member.id);
+
+            if (error) throw error;
+
+            toast.success('Staff member removed');
+            await fetchStaff();
+        } catch (err: any) {
+            toast.error('Deletion failed', { description: err.message || 'Error occurred.' });
+        }
     };
 
     return (
@@ -336,7 +413,7 @@ export default function StaffPage() {
                         Export Staff
                     </button>
                     <button
-                        onClick={() => setIsAddModalOpen(true)}
+                        onClick={openAddModal}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-brandPurple text-white hover:bg-brandPurple/90 transition-all text-xs font-bold shadow-sm cursor-pointer"
                     >
                         <Plus className="h-4.5 w-4.5" />
@@ -470,7 +547,27 @@ export default function StaffPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filtered.length > 0 ? (
+                        {loading ? (
+                            Array.from({ length: 5 }).map((_, idx) => (
+                                <TableRow key={idx}>
+                                    <TableCell colSpan={8} className="py-4 pl-6">
+                                        <div className="flex items-center gap-3">
+                                            <Skeleton className="h-9 w-9 rounded-full shrink-0" />
+                                            <div className="space-y-2 flex-1">
+                                                <Skeleton className="h-4.5 w-[220px]" />
+                                                <Skeleton className="h-3 w-[140px]" />
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : fetchError ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="text-center py-8 text-red-500 font-bold text-xs">
+                                    {fetchError}
+                                </TableCell>
+                            </TableRow>
+                        ) : filtered.length > 0 ? (
                             filtered.map(member => {
                                 const DeptIcon = member.departmentIcon;
                                 return (
@@ -512,13 +609,13 @@ export default function StaffPage() {
                                         {/* Actions */}
                                         <TableCell className="py-3.5 text-right pr-6">
                                             <div className="inline-flex items-center gap-2 justify-end">
-                                                <button onClick={() => toast.info(`Viewing profile for ${member.name}`)}
+                                                <button onClick={() => openEditModal(member)}
                                                     className="p-1 rounded-lg border border-gray-200 hover:bg-slate-100 text-gray-500 cursor-pointer shadow-sm">
-                                                    <Eye className="h-3.5 w-3.5" />
+                                                    <Pencil className="h-3.5 w-3.5" />
                                                 </button>
-                                                <button onClick={() => toast.info('Staff actions drawer coming soon.')}
-                                                    className="p-1 rounded-lg border border-gray-200 hover:bg-slate-100 text-gray-500 cursor-pointer shadow-sm">
-                                                    <MoreVertical className="h-3.5 w-3.5" />
+                                                <button onClick={() => handleDelete(member)}
+                                                    className="p-1 rounded-lg border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 text-gray-500 cursor-pointer shadow-sm">
+                                                    <Trash2 className="h-3.5 w-3.5" />
                                                 </button>
                                             </div>
                                         </TableCell>
@@ -573,10 +670,10 @@ export default function StaffPage() {
             <FormModal
                 isOpen={isAddModalOpen}
                 onOpenChange={setIsAddModalOpen}
-                title="Add New Staff Member"
-                description="Register a new teaching or administrative employee."
-                onSubmit={handleAdd}
-                submitText="Register Staff"
+                title={editingStaffId ? 'Edit Staff Member' : 'Add New Staff Member'}
+                description={editingStaffId ? 'Update staff details for this employee.' : 'Register a new teaching or administrative employee.'}
+                onSubmit={editingStaffId ? handleEdit : handleAdd}
+                submitText={editingStaffId ? 'Save Changes' : 'Register Staff'}
                 loading={saving}
             >
                 <div className="space-y-4">

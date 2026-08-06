@@ -5,6 +5,7 @@ node_modules/
 dist/
 dist-ssr/
 build/
+.next/
 
 # Environment variables — NEVER commit these
 .env

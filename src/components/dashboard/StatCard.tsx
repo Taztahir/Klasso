@@ -2,12 +2,12 @@
 
 import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { LucideIcon, TrendingUp, TrendingDown } from 'lucide-react';
+import * as Lucide from 'lucide-react';
 
 interface StatCardProps {
     title: string;
     value: string | number;
-    icon: LucideIcon;
+    icon: Lucide.LucideIcon | string;
     description?: string;
     color?: 'purple' | 'yellow' | 'green' | 'pink' | 'cream' | 'blue';
     trendText?: string;
@@ -18,13 +18,17 @@ interface StatCardProps {
 export function StatCard({
     title,
     value,
-    icon: Icon,
+    icon,
     description,
     color = 'cream',
     trendText,
     trendDirection = 'up',
     trendSubtext
 }: StatCardProps) {
+    // Resolve icon from string if needed (to support RSC serialization)
+    const Icon = typeof icon === 'string'
+        ? (Lucide[icon as keyof typeof Lucide] as Lucide.LucideIcon) || Lucide.HelpCircle
+        : icon;
     // Brand color variants mapping matching mockups
     const colorClasses = {
         purple: {
@@ -107,9 +111,9 @@ export function StatCard({
                 <div className="flex items-center gap-2 mt-3 z-10">
                     <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${variant.trendBg}`}>
                         {trendDirection === 'up' ? (
-                            <TrendingUp className="h-3 w-3" />
+                            <Lucide.TrendingUp className="h-3 w-3" />
                         ) : (
-                            <TrendingDown className="h-3 w-3" />
+                            <Lucide.TrendingDown className="h-3 w-3" />
                         )}
                         {trendText}
                     </span>

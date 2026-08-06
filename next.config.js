@@ -1,6 +1,5 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
     // Use Turbopack for significantly faster dev compilation
     turbopack: {},
 
@@ -13,9 +12,8 @@ const nextConfig: NextConfig = {
     // This prevents Webpack/Turbopack from resolving the entire library
     // when you only import a few symbols.
     experimental: {
-        optimizePackageImports: ['framer-motion', 'lucide-react'],
+        optimizePackageImports: ['framer-motion', 'lucide-react', 'recharts'],
     },
 };
 
 export default nextConfig;
-
